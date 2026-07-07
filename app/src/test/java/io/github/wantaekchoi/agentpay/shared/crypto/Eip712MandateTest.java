@@ -29,4 +29,15 @@ class Eip712MandateTest {
         var tampered = sample(kp.address(), "0x3333333333333333333333333333333333333333");
         assertThat(Eip712Mandate.recoverSigner(tampered, 31337L, sig)).isNotEqualTo(kp.address());
     }
+
+    @Test
+    void stringFieldWithQuote_stillSignsAndRecovers() {
+        var kp = Signatures.generateKeyPair();
+        var d = new Eip712Mandate.MandateData(kp.address(), "0x2222222222222222222222222222222222222222",
+                "USD\"C", BigInteger.valueOf(100), BigInteger.valueOf(1000),
+                List.of("0x1111111111111111111111111111111111111111"), false,
+                1000L, 2000L, BigInteger.ONE);
+        String sig = Eip712Mandate.sign(d, 31337L, kp.privateKey());
+        assertThat(Eip712Mandate.recoverSigner(d, 31337L, sig)).isEqualTo(kp.address());
+    }
 }

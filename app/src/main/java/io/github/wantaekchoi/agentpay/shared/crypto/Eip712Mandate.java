@@ -18,7 +18,7 @@ public final class Eip712Mandate {
 
     public static String typedDataJson(MandateData d, long chainId) {
         String payees = d.allowedPayees().stream()
-                .map(p -> "\"" + p + "\"")
+                .map(p -> "\"" + esc(p) + "\"")
                 .collect(Collectors.joining(","));
         // EIP-712 JSON. 필드 순서는 types 정의 순서와 일치해야 함.
         return "{"
@@ -34,12 +34,28 @@ public final class Eip712Mandate {
                 + "\"primaryType\":\"AgentPaymentMandate\","
                 + "\"domain\":{\"name\":\"agentpay\",\"version\":\"1\",\"chainId\":" + chainId + "},"
                 + "\"message\":{"
-                + "\"user\":\"" + d.user() + "\",\"agent\":\"" + d.agent() + "\","
-                + "\"currency\":\"" + d.currency() + "\","
+                + "\"user\":\"" + esc(d.user()) + "\",\"agent\":\"" + esc(d.agent()) + "\","
+                + "\"currency\":\"" + esc(d.currency()) + "\","
                 + "\"perTxLimit\":" + d.perTxLimit() + ",\"totalLimit\":" + d.totalLimit() + ","
                 + "\"allowedPayees\":[" + payees + "],\"allowAny\":" + d.allowAny() + ","
                 + "\"validFrom\":" + d.validFrom() + ",\"validUntil\":" + d.validUntil() + ",\"nonce\":" + d.nonce()
                 + "}}";
+    }
+
+    private static String esc(String s) {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"'  -> b.append("\\\"");
+                case '\\' -> b.append("\\\\");
+                case '\n' -> b.append("\\n");
+                case '\r' -> b.append("\\r");
+                case '\t' -> b.append("\\t");
+                default   -> { if (c < 0x20) b.append(String.format("\\u%04x", (int) c)); else b.append(c); }
+            }
+        }
+        return b.toString();
     }
 
     private static byte[] digest(MandateData d, long chainId) {
