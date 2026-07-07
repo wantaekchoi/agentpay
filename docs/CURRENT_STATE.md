@@ -9,10 +9,20 @@
 
 ## 스택 (확정)
 - Java 25 (LTS) + Spring Boot 4.1.0 + Gradle 9.6.1 (Kotlin DSL, 컴파일·데몬 모두 25)
-- 아키텍처: 헥사고날 코어 모놀리스 + ArchUnit 경계 (Modulith 미채택), commerce-mock·evm-gateway 분리
-- 온체인: 하이브리드 커스터디 (PaymentRail 뒤), web3j
-- 재사용: 결재대행 공개 API(무버전 URL) + `:agentpay-client` SDK + 웹훅 (Phase 6/7)
+- 헥사고날 코어 모놀리스 + ArchUnit 경계(Modulith 미채택), commerce-mock·evm-gateway 분리(예정)
+- 온체인: 하이브리드 커스터디(PaymentRail 뒤), web3j / 재사용: 결재대행 무버전 API + `:agentpay-client` SDK + 웹훅(예정)
 
-## 완료
-- 저장소 초기화, remote `github.com/wantaekchoi/agentpay`
-- **Task 1 (부트스트랩)**: `:app` 멀티모듈 스캐폴드, Boot 4.1/Java25, 스모크 테스트 green (pristine)
+## Phase 1 — 완료 (Foundation & Identity) ✅
+브랜치 `phase-1-foundation-identity`, GitHub push 완료. 전 8태스크 + 최종리뷰 수정, 21 tests green.
+- **T1 부트스트랩**: `:app`(Boot 4.1/Java25), Gradle wrapper, compose(postgres) 스텁
+- **T2 `shared/crypto/Signatures`**: secp256k1 EIP-191 sign/recover, KeyPair.toString redaction, 서명길이 검증
+- **T3 `shared/crypto/Base58` + `shared/did/DidKey`**: did:key(secp256k1) 인코딩
+- **T4 `identity/domain`**: User/Agent JPA + Flyway V1 + 공유 TestcontainersConfiguration
+- **T5 `identity`**: AgentRegistrationService + AgentIdentityService (`AgentIdentity` 포트) — 등록/챌린지검증
+- **T6**: A2A `AgentCard` + `AgentDirectory` 포트
+- **T7 `identity/web`**: REST(register/verify/card) + did:web 문서. URL 무버전
+- **T8 ArchUnit**: 모듈 경계 3규칙(+ 최종리뷰 수정으로 `..identity..`→web3j 금지 강화)
+- **최종 리뷰(opus)**: Critical 0. 게이트였던 Important #1(identity→web3j 누수 + vacuous 규칙) 수정 완료(commit e2bf918).
+
+## 검증됨
+- 서버측 개인키 부재(DB/로그), recoverAddress 크래시 내성, sign→recover 라운드트립, did:key/base58 정확성(리뷰어 독립검증), 실 Postgres 통합테스트.
