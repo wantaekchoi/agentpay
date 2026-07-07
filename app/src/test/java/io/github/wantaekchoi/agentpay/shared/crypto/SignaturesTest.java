@@ -56,4 +56,22 @@ class SignaturesTest {
         assertThat(kp.address()).matches("^0x[0-9a-f]{40}$");
         assertThat(recovered).matches("^0x[0-9a-f]{40}$");
     }
+
+    @Test
+    void addressFromPublicKey_roundTripsWithGeneratedKeyPair() {
+        var kp = Signatures.generateKeyPair();
+
+        String derivedAddress = Signatures.addressFromPublicKey(kp.publicKey());
+
+        assertThat(derivedAddress).isEqualTo(kp.address());
+    }
+
+    @Test
+    void publicKeyFromHex_withMalformedHex_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> Signatures.publicKeyFromHex("not-a-hex-string"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> Signatures.publicKeyFromHex(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }

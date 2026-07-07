@@ -16,9 +16,9 @@ class ModuleBoundaryTest {
             .importPackages("io.github.wantaekchoi.agentpay");
 
     @Test
-    void identityDomainDoesNotDependOnWeb3j() {
+    void identityDoesNotDependOnWeb3j() {
         ArchRule rule = noClasses()
-                .that().resideInAPackage("..identity.domain..")
+                .that().resideInAPackage("..identity..")
                 .should().dependOnClassesThat().resideInAPackage("org.web3j..");
         rule.check(classes);
     }

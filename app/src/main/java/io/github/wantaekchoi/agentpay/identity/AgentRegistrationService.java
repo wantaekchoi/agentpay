@@ -3,10 +3,9 @@ package io.github.wantaekchoi.agentpay.identity;
 import io.github.wantaekchoi.agentpay.identity.domain.Agent;
 import io.github.wantaekchoi.agentpay.identity.domain.AgentRepository;
 import io.github.wantaekchoi.agentpay.identity.domain.UserRepository;
+import io.github.wantaekchoi.agentpay.shared.crypto.Signatures;
 import io.github.wantaekchoi.agentpay.shared.did.DidKey;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.Keys;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.UUID;
@@ -25,11 +24,12 @@ public class AgentRegistrationService {
         if (!users.existsById(ownerUserId)) {
             throw new IllegalArgumentException("소유자 미존재: " + ownerUserId);
         }
-        BigInteger publicKey = Numeric.toBigInt(publicKeyHex);
-        String address = Numeric.prependHexPrefix(Keys.getAddress(publicKey)).toLowerCase();
+        BigInteger publicKey = Signatures.publicKeyFromHex(publicKeyHex);
+        String address = Signatures.addressFromPublicKey(publicKey);
         String did = DidKey.encode(publicKey);
+        String storedPublicKeyHex = "0x" + publicKeyHex.replaceFirst("^0x", "");
         Agent agent = new Agent(UUID.randomUUID(), ownerUserId,
-                Numeric.prependHexPrefix(publicKeyHex.replaceFirst("^0x", "")),
+                storedPublicKeyHex,
                 address, did, alias, "ACTIVE");
         return agents.save(agent);
     }

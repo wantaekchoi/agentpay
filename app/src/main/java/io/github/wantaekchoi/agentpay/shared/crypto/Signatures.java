@@ -20,11 +20,23 @@ public final class Signatures {
     public static KeyPair generateKeyPair() {
         try {
             ECKeyPair kp = Keys.createEcKeyPair();
-            String address = Numeric.prependHexPrefix(Keys.getAddress(kp.getPublicKey()));
-            return new KeyPair(kp.getPrivateKey(), kp.getPublicKey(), address.toLowerCase());
+            String address = addressFromPublicKey(kp.getPublicKey());
+            return new KeyPair(kp.getPrivateKey(), kp.getPublicKey(), address);
         } catch (Exception e) {
             throw new IllegalStateException("keypair 생성 실패", e);
         }
+    }
+
+    public static BigInteger publicKeyFromHex(String publicKeyHex) {
+        try {
+            return Numeric.toBigInt(publicKeyHex);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("공개키 hex 파싱 실패: " + publicKeyHex, e);
+        }
+    }
+
+    public static String addressFromPublicKey(BigInteger publicKey) {
+        return Numeric.prependHexPrefix(Keys.getAddress(publicKey)).toLowerCase();
     }
 
     public static String sign(BigInteger privateKey, String message) {
