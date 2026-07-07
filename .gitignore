@@ -1,0 +1,52 @@
+# --- Gradle / Java ---
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+*.class
+*.log
+out/
+bin/
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# --- Spring / env ---
+application-local.yml
+application-local.yaml
+application-local.properties
+.env
+.env.local
+*.local
+
+# --- Docker ---
+# (compose.yml itself IS tracked; ignore local overrides)
+compose.override.yml
+docker-compose.override.yml
+
+# --- Foundry / Solidity (mock USDC, EVM node) ---
+contracts/lib/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# --- Keys / secrets (NEVER commit private keys) ---
+*.pem
+*.key
+keystore/
+secrets/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- 로컬 세션 작업 메모리 (badge-dev-workflow, 로컬 전용) ---
+/.claude/pending-workflow.json
