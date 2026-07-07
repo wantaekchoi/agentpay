@@ -12,6 +12,7 @@ java {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.web3j:crypto:4.12.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
