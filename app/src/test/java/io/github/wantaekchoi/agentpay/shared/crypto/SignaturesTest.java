@@ -37,6 +37,12 @@ class SignaturesTest {
     }
 
     @Test
+    void recoverAddress_withOddLengthHex_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> Signatures.recoverAddress("challenge", "0x123"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void keyPair_toString_doesNotLeakPrivateKey() {
         var kp = Signatures.generateKeyPair();
 

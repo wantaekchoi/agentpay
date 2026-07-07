@@ -23,7 +23,9 @@ public class DidWebController {
     public Map<String, Object> didDocument(@PathVariable UUID id, HttpServletRequest request) {
         Agent a = agents.findById(id)
                 .orElseThrow(() -> new NotFoundException("agent 미존재: " + id));
-        String host = request.getServerName() + ":" + request.getServerPort();
+        // did:web 규약상 host:port의 콜론은 %3A로 percent-encode한다.
+        // 경로 구분자(:agents:)의 콜론은 인코딩하지 않는다.
+        String host = request.getServerName() + "%3A" + request.getServerPort();
         String didWeb = "did:web:" + host + ":agents:" + id;
         Map<String, Object> vm = Map.of(
                 "id", didWeb + "#key-1",

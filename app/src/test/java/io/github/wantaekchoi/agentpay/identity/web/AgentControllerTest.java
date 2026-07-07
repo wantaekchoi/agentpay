@@ -82,7 +82,8 @@ class AgentControllerTest {
 
         mvc.perform(get("/agents/" + agentId + "/did.json"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(Matchers.containsString("did:web")))
+                .andExpect(jsonPath("$.id").value(Matchers.containsString("did:web:")))
+                .andExpect(jsonPath("$.id").value(Matchers.containsString("%3A")))
                 .andExpect(jsonPath("$.verificationMethod[0].blockchainAccountId")
                         .value(Matchers.containsString(agentKp.address())));
     }
@@ -99,7 +100,46 @@ class AgentControllerTest {
                 "alias", "shopper"));
 
         mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    void getCardReturnsRegisteredAgentDetails() throws Exception {
+        var ownerKp = Signatures.generateKeyPair();
+        User owner = new User(UUID.randomUUID(), "frank", "0xpub", ownerKp.address());
+        users.save(owner);
+
+        var agentKp = Signatures.generateKeyPair();
+        String pubHex = Numeric.toHexStringWithPrefixZeroPadded(agentKp.publicKey(), 128);
+        String body = json.writeValueAsString(Map.of(
+                "ownerUserId", owner.getId().toString(), "publicKey", pubHex, "alias", "shopper"));
+        String resp = mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andReturn().getResponse().getContentAsString();
+        String agentId = json.readTree(resp).get("id").asText();
+
+        mvc.perform(get("/agents/" + agentId + "/card"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").exists())
+                .andExpect(jsonPath("$.did").exists())
+                .andExpect(jsonPath("$.address").value(agentKp.address()));
+    }
+
+    @Test
+    void postAgentsWithUnparsableJsonBodyReturns400() throws Exception {
+        mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    void getCardWithNonUuidPathSegmentReturns400() throws Exception {
+        mvc.perform(get("/agents/not-a-uuid/card"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -119,7 +159,9 @@ class AgentControllerTest {
     @Test
     void cardForUnknownAgentReturns404() throws Exception {
         mvc.perform(get("/agents/" + UUID.randomUUID() + "/card"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
