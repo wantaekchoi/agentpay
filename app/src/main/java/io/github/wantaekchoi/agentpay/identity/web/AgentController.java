@@ -5,6 +5,10 @@ import io.github.wantaekchoi.agentpay.identity.AgentRegistrationService;
 import io.github.wantaekchoi.agentpay.identity.domain.Agent;
 import io.github.wantaekchoi.agentpay.identity.port.AgentDirectory;
 import io.github.wantaekchoi.agentpay.identity.port.AgentIdentity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,12 +34,18 @@ public class AgentController {
         this.directory = directory;
     }
 
-    public record RegisterRequest(UUID ownerUserId, String publicKey, String alias) {}
+    public record RegisterRequest(
+            @NotNull UUID ownerUserId,
+            @NotBlank
+            @Pattern(regexp = "^0x[0-9a-fA-F]{128}$",
+                    message = "publicKey must be 0x + 128 hex chars (64-byte secp256k1 key)")
+            String publicKey,
+            @NotBlank String alias) {}
     public record RegisterResponse(UUID id, String did, String address) {}
     public record VerifyRequest(String message, String signature) {}
 
     @PostMapping
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest req) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest req) {
         Agent a = registration.register(req.ownerUserId(), req.publicKey(), req.alias());
         return ResponseEntity.status(201)
                 .body(new RegisterResponse(a.getId(), a.getDid(), a.getAddress()));

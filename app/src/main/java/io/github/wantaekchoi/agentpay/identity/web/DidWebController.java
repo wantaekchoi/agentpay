@@ -2,6 +2,7 @@ package io.github.wantaekchoi.agentpay.identity.web;
 
 import io.github.wantaekchoi.agentpay.identity.domain.Agent;
 import io.github.wantaekchoi.agentpay.identity.domain.AgentRepository;
+import io.github.wantaekchoi.agentpay.shared.error.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,8 +22,10 @@ public class DidWebController {
     @GetMapping("/agents/{id}/did.json")
     public Map<String, Object> didDocument(@PathVariable UUID id, HttpServletRequest request) {
         Agent a = agents.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("agent 미존재: " + id));
-        String host = request.getServerName() + ":" + request.getServerPort();
+                .orElseThrow(() -> new NotFoundException("agent 미존재: " + id));
+        // did:web 규약상 host:port의 콜론은 %3A로 percent-encode한다.
+        // 경로 구분자(:agents:)의 콜론은 인코딩하지 않는다.
+        String host = request.getServerName() + "%3A" + request.getServerPort();
         String didWeb = "did:web:" + host + ":agents:" + id;
         Map<String, Object> vm = Map.of(
                 "id", didWeb + "#key-1",

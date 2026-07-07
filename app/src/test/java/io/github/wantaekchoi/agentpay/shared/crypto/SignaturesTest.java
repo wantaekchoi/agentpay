@@ -37,6 +37,20 @@ class SignaturesTest {
     }
 
     @Test
+    void recoverAddress_withNonHexCharacters_throwsIllegalArgumentException() {
+        // web3j's Numeric.hexStringToByteArray does not validate hex characters -
+        // Character.digit() returns -1 for non-hex chars without throwing, so any
+        // non-null string (even garbage like "0xZZZZ...") still decodes into *some*
+        // byte array and only ever trips the sig.length != 65 check below, exactly
+        // like the malformed-signature case above. The only input that genuinely
+        // fails inside hexStringToByteArray itself (a real hex-parse failure, not a
+        // length mismatch) is a null signatureHex, which NPEs inside the decoder and
+        // is caught/rewrapped by recoverAddress's parse guard.
+        assertThatThrownBy(() -> Signatures.recoverAddress("challenge", null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void keyPair_toString_doesNotLeakPrivateKey() {
         var kp = Signatures.generateKeyPair();
 
