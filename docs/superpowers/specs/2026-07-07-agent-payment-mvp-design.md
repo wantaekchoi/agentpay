@@ -43,7 +43,7 @@
 
 | 항목 | 선택 | 비고 |
 |---|---|---|
-| 언어 | **Java 21 (LTS)** | Boot 4.1 baseline은 17; 로컬 설치된 LTS. (25 novelty 회피) |
+| 언어 | **Java 25 (LTS)** | 최신 LTS(Temurin 25 설치). Boot 4.1 baseline은 17. 컴파일·Gradle 데몬 모두 25로 고정(비-LTS 26 배제) |
 | 프레임워크 | **Spring Boot 4.1.x** | Spring Framework 7 기반 |
 | 빌드 | **Gradle (Kotlin DSL)** | |
 | DB | **PostgreSQL** | core_db / commerce_db 스키마 분리 |
@@ -53,7 +53,7 @@
 | 오케스트레이션 | **docker compose** | |
 | 모듈 경계 강제 | **ArchUnit** | Spring Modulith 미채택 (아래 4.1 참조) |
 
-> **버전 확정/검증**: Spring Boot **4.1.0.RELEASE**(start.spring.io 메타 확인), Java **21**. web3j의 Spring 7/Jakarta 호환, springdoc 등 통합 라이브러리의 Framework 7 지원 여부는 각 라이브러리를 도입하는 시점에 확인한다(early-adopter 세금).
+> **버전 확정/검증**: Spring Boot **4.1.0**(plugin), Java **25 (LTS)**. `gradle/gradle-daemon-jvm.properties`로 데몬도 25 고정. web3j의 Spring 7/Jakarta 호환, springdoc 등 통합 라이브러리의 Framework 7 지원 여부는 각 라이브러리를 도입하는 시점에 확인한다(early-adopter 세금).
 
 ---
 
@@ -300,7 +300,7 @@ ArchUnit 규칙: 각 도메인 패키지는 자기 포트 인터페이스로만 
 
 ```
 nginx        :80    리버스 프록시, 단일 진입점
-core-service :8080  Spring Boot 4.1 / Java 21
+core-service :8080  Spring Boot 4.1 / Java 25
 commerce-mock:8081  Spring Boot
 evm-gateway  :8082  Spring Boot + web3j
 postgres     :5432  core_db / commerce_db
@@ -322,7 +322,7 @@ anvil        :8545  Foundry 로컬 EVM — 부팅 시 mock USDC(EIP-3009) 배포
 | 하이브리드 커스터디 | Solidity 없이 빠르게, PaymentRail 뒤에서 에스크로로 교체 가능 | 온체인 에스크로(툴체인 무거움), 순수 시뮬레이션(차별점 약화) |
 | 에이전트 = 프로그래밍 클라이언트 | walking skeleton은 결제 코어. LLM은 상관성 낮음 | LLM 주도 에이전트(범위 과대) |
 | secp256k1 + EIP-712 | 키 하나로 DID·EVM·서명 3중 활용, x402/AP2 결 | ed25519(EVM 비호환) |
-| Boot 4.1 + Java 21 | 최신 프레임워크 유지 + 설치된 LTS. 25 novelty·미설치 회피, 3.5는 최신 아님 | Java 25(얼리어답터세), Boot 3.5(구버전) |
+| Boot 4.1 + Java 25 | 최신 프레임워크 + 최신 LTS(둘 다 설치). 컴파일·데몬 모두 25, 비-LTS 26 배제 | Java 21(구 LTS), Boot 3.5(구버전) |
 | 결재대행 재사용 API+SDK 분리 | 다른 몰/서비스가 즉시 연동. commerce-mock은 한 소비자 | 커머스에 결제 로직 결합(재사용 불가) |
 | API 무버전 URL + 헤더 버전 | `/v1` URL은 낡음. 하위호환 진화 + 필요시 헤더(날짜) 버전 | URL `/v1/`(레거시 패턴) |
 | AP2 + x402 짝 | 위임 증명(AP2) + 온체인 실행(x402)이 원래 조합 | — |
