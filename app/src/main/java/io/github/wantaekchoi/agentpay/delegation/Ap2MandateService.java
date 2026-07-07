@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -87,8 +88,26 @@ public class Ap2MandateService implements MandateService {
     @Override
     @Transactional(readOnly = true)
     public Mandate get(UUID id) {
-        return mandates.findById(id)
+        Mandate mandate = mandates.findById(id)
                 .orElseThrow(() -> new NotFoundException("mandate 미존재: " + id));
+        Hibernate.initialize(mandate.getAllowedPayees());
+        return mandate;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Mandate> listByAgent(UUID agentId) {
+        List<Mandate> found = mandates.findByAgentId(agentId);
+        found.forEach(m -> Hibernate.initialize(m.getAllowedPayees()));
+        return found;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Mandate> listByUser(UUID userId) {
+        List<Mandate> found = mandates.findByUserId(userId);
+        found.forEach(m -> Hibernate.initialize(m.getAllowedPayees()));
+        return found;
     }
 
     @Override

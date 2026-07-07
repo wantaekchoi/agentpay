@@ -1,11 +1,11 @@
 package io.github.wantaekchoi.agentpay.delegation.web;
 
 import io.github.wantaekchoi.agentpay.delegation.domain.Mandate;
-import io.github.wantaekchoi.agentpay.delegation.domain.MandateRepository;
 import io.github.wantaekchoi.agentpay.delegation.domain.MandateStatus;
 import io.github.wantaekchoi.agentpay.delegation.port.IssueMandateCommand;
 import io.github.wantaekchoi.agentpay.delegation.port.MandateService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.math.BigInteger;
@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,11 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class MandateController {
 
     private final MandateService mandateService;
-    private final MandateRepository mandates;
 
-    public MandateController(MandateService mandateService, MandateRepository mandates) {
+    public MandateController(MandateService mandateService) {
         this.mandateService = mandateService;
-        this.mandates = mandates;
     }
 
     public record IssueMandateRequest(
@@ -48,7 +45,7 @@ public class MandateController {
             long validFrom,
             long validUntil,
             @NotNull BigInteger nonce,
-            @NotNull String userSignature) {}
+            @NotBlank String userSignature) {}
 
     public record MandateResponse(
             UUID id,
@@ -77,25 +74,24 @@ public class MandateController {
                 .body(new MandateStatusResponse(mandate.getId(), mandate.getStatus()));
     }
 
-    // LAZY allowedPayees: spring.jpa.open-in-view=false 이므로 서비스 호출이 끝나면 영속성
-    // 컨텍스트가 닫힌다. 컨트롤러 메서드 자체를 @Transactional(readOnly=true)로 선언해
-    // toResponse()의 매핑(allowedPayees 접근)이 트랜잭션이 열려 있는 동안 끝나도록 한다.
+    // LAZY allowedPayees: MandateService가 자신의 @Transactional 경계 안에서
+    // Hibernate.initialize(allowedPayees)로 미리 초기화해 반환하므로, 트랜잭션이
+    // 닫힌 뒤에도(spring.jpa.open-in-view=false) 컨트롤러가 안전하게 매핑할 수 있다.
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
     public MandateResponse getById(@PathVariable UUID id) {
         return toResponse(mandateService.get(id));
     }
 
     @GetMapping
-    @Transactional(readOnly = true)
     public List<MandateResponse> list(
             @RequestParam(required = false) UUID agentId,
             @RequestParam(required = false) UUID userId) {
         List<Mandate> found;
+        // agentId와 userId가 둘 다 주어지면 agentId가 우선한다.
         if (agentId != null) {
-            found = mandates.findByAgentId(agentId);
+            found = mandateService.listByAgent(agentId);
         } else if (userId != null) {
-            found = mandates.findByUserId(userId);
+            found = mandateService.listByUser(userId);
         } else {
             throw new IllegalArgumentException("agentId 또는 userId 파라미터 중 하나는 필수입니다");
         }
