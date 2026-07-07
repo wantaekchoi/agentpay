@@ -74,7 +74,7 @@ docs/
   superpowers/plans/         # 구현 계획 (Phase별)
   CURRENT_STATE.md           # 완료 상태
   NEXT_STEP.md               # 다음 단계·백로그
-CLAUDE.md                    # 빌드·검증·아키텍처·Boot 4.1 gotcha
+CLAUDE.md                    # 빌드·검증·아키텍처·Boot 4.x 버전 좌표
 ```
 
 ## API (Phase 1)

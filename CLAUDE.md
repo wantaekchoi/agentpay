@@ -19,13 +19,14 @@
 - **`identity`는 web3j 타입을 직접 참조하지 않는다** — 서명·주소·DID는 `shared`(`Signatures`·`DidKey`) 통해서만. **ArchUnit `*ModuleBoundaryTest`가 `..identity..`→`org.web3j..` 금지를 강제**(위반 시 빌드 실패).
 - 공개 API URL은 **무버전 리소스**(`/agents`, `/mandates`…). `/v1` 프리픽스 금지; breaking change는 헤더 버전(날짜).
 
-## Spring Boot 4.1 gotchas (early-adopter 세금 — 실제로 겪음)
-- 웹 스타터: `spring-boot-starter-web` → **`spring-boot-starter-webmvc`**.
-- autoconfig 모듈 분리: Flyway는 **`spring-boot-starter-flyway`** 명시 필요(없으면 조용히 안 돎 → 빈 스키마 검증 실패).
-- Testcontainers **2.0.5**(Boot BOM 관리): 아티팩트 `org.testcontainers:testcontainers-postgresql`, 클래스 `org.testcontainers.postgresql.PostgreSQLContainer`(**비제네릭**).
-- **Jackson 3 기본**: classic `com.fasterxml.jackson` ObjectMapper 빈 없음. `@AutoConfigureMockMvc`는 **`spring-boot-webmvc-test`** 아티팩트.
-- ArchUnit는 **1.4.2+**(1.3.0 번들 ASM은 Java 25 바이트코드 못 읽어 0클래스 임포트 → 규칙 오작동).
-- start.spring.io는 4.1-kotlin 생성 시 500(서버 버그) — Initializr 대신 로컬 gradle로 부트스트랩.
+## Spring Boot 4.x 버전 좌표 (3.x → 4.x에서 바뀐 것)
+Boot 4.1은 사내 badge 서버들도 쓰는 표준 베이스라인. 아래는 이 프로젝트 셋업에서 확인한, 3.x와 좌표/기본값이 다른 지점들:
+- 웹 스타터는 `spring-boot-starter-webmvc` 사용.
+- Flyway autoconfig는 `spring-boot-starter-flyway` 의존성이 있어야 실행(없으면 마이그레이션 skip → 빈 스키마 검증 실패).
+- Testcontainers `2.0.5`(Boot BOM 관리): 아티팩트 `org.testcontainers:testcontainers-postgresql`, 클래스 `org.testcontainers.postgresql.PostgreSQLContainer`(**비제네릭**).
+- Jackson 3 기본: classic `com.fasterxml.jackson` ObjectMapper 자동빈 없음. `@AutoConfigureMockMvc`는 `spring-boot-webmvc-test` 아티팩트.
+- ArchUnit `1.4.2+` (구버전 번들 ASM은 Java 25 바이트코드 major 69를 못 읽음).
+- (도구) start.spring.io가 4.1-kotlin 생성 시 500 — Initializr 대신 로컬 gradle로 부트스트랩.
 
 ## 테스트 규약
 - 통합테스트는 공유 `TestcontainersConfiguration`(`@TestConfiguration` + `@Bean @ServiceConnection PostgreSQLContainer`)을 `@Import`로 재사용(컨테이너 재선언 금지).

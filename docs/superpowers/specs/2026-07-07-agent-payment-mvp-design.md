@@ -53,7 +53,7 @@
 | 오케스트레이션 | **docker compose** | |
 | 모듈 경계 강제 | **ArchUnit** | Spring Modulith 미채택 (아래 4.1 참조) |
 
-> **버전 확정/검증**: Spring Boot **4.1.0**(plugin), Java **25 (LTS)**. `gradle/gradle-daemon-jvm.properties`로 데몬도 25 고정. web3j의 Spring 7/Jakarta 호환, springdoc 등 통합 라이브러리의 Framework 7 지원 여부는 각 라이브러리를 도입하는 시점에 확인한다(early-adopter 세금).
+> **버전 확정/검증**: Spring Boot **4.1.0**(plugin), Java **25 (LTS)**. `gradle/gradle-daemon-jvm.properties`로 데몬도 25 고정. web3j의 Spring 7/Jakarta 호환, springdoc 등 통합 라이브러리의 Framework 7 지원 여부는 각 라이브러리를 도입하는 시점에 확인한다.
 
 ---
 
