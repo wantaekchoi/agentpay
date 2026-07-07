@@ -43,7 +43,7 @@
 
 | 항목 | 선택 | 비고 |
 |---|---|---|
-| 언어 | **Java 25 (LTS)** | Spring Boot 4.x 지원, 최신 LTS |
+| 언어 | **Java 21 (LTS)** | Boot 4.1 baseline은 17; 로컬 설치된 LTS. (25 novelty 회피) |
 | 프레임워크 | **Spring Boot 4.1.x** | Spring Framework 7 기반 |
 | 빌드 | **Gradle (Kotlin DSL)** | |
 | DB | **PostgreSQL** | core_db / commerce_db 스키마 분리 |
@@ -53,7 +53,7 @@
 | 오케스트레이션 | **docker compose** | |
 | 모듈 경계 강제 | **ArchUnit** | Spring Modulith 미채택 (아래 4.1 참조) |
 
-> **버전 검증 필요**: Spring Boot 4.1.x의 정확한 패치버전, Java 25 ↔ Boot 4.1 호환, web3j의 Spring 7/Jakarta 호환 여부는 구현 착수 시 context7·공식 릴리스노트로 재확인해 고정한다.
+> **버전 확정/검증**: Spring Boot **4.1.0.RELEASE**(start.spring.io 메타 확인), Java **21**. web3j의 Spring 7/Jakarta 호환, springdoc 등 통합 라이브러리의 Framework 7 지원 여부는 각 라이브러리를 도입하는 시점에 확인한다(early-adopter 세금).
 
 ---
 
@@ -229,6 +229,17 @@ GET /catalog?type=&minPrice=&maxPrice=&currency=&tag=&maxBudget=
 
 ---
 
+## 11-B. 재사용 가능한 결재대행 연동 (mall-agnostic)
+
+commerce-mock은 결재대행의 **한 예시 소비자**일 뿐이다. 결재대행(core-service)의 바깥 계약은 특정 몰에 종속되지 않는 **재사용 가능한 통합**으로 설계해, 어떤 서비스든 바로 붙일 수 있게 한다.
+
+- **공개 통합 API (mall-agnostic)**: register agent · issue mandate · initiate payment · fetch receipt · verify. 깨끗한 리소스 URL(`/agents`, `/mandates`, `/payments`, `/receipts`) — **URL에 `/v1` 버전 프리픽스를 두지 않는다**(낡은 패턴). 하위호환 진화가 기본이고, 진짜 breaking change가 필요할 때만 **헤더 기반 버전**(예: `Agentpay-Version: 2026-07-07`, Stripe 방식)을 도입. OpenAPI(springdoc)로 문서화.
+- **`:agentpay-client` SDK**: 외부 서비스가 import해 즉시 연동하는 얇은 Java 클라이언트. MVP의 commerce-mock이 이 SDK로 core와 대화(도그푸딩)해 "서비스 무관"을 증명.
+- **웹훅/콜백**: `PaymentSettled`를 payee(몰)에게 웹훅으로 통지 → 외부 몰이 폴링 없이 정산·주문 반영.
+- **불변식**: core에는 어떤 몰-특화 로직도 들어가지 않는다. 몰이 아는 것은 공개 API·웹훅 계약뿐. (Phase 6/7에서 구현; 그 전까지 core의 REST를 이 계약 관점으로 설계)
+
+---
+
 ## 12. Audit & 영수증
 
 - **outbox → 이벤트 소비**: 모든 상태 변화가 `OutboxEvent`로 기록되고, `@TransactionalEventListener` + 발행자가 audit로 durable 전달 (Modulith 없이 재시작 내성).
@@ -276,6 +287,7 @@ GET /catalog?type=&minPrice=&maxPrice=&currency=&tag=&maxBudget=
 :commerce-mock     (schema.org/ACP Feed 카탈로그, 필터, 주문)
 :evm-gateway       (web3j, 예치감지, x402/EIP-3009 정산)
 :agent-cli         (키 보관, EIP-712 서명, 탐색·결제 클라이언트)
+:agentpay-client   (외부 서비스용 얇은 통합 SDK — commerce-mock이 도그푸딩)
 contracts/         (Foundry: mock USDC(EIP-3009))
 compose.yml, nginx/
 ```
@@ -288,7 +300,7 @@ ArchUnit 규칙: 각 도메인 패키지는 자기 포트 인터페이스로만 
 
 ```
 nginx        :80    리버스 프록시, 단일 진입점
-core-service :8080  Spring Boot 4.1 / Java 25
+core-service :8080  Spring Boot 4.1 / Java 21
 commerce-mock:8081  Spring Boot
 evm-gateway  :8082  Spring Boot + web3j
 postgres     :5432  core_db / commerce_db
@@ -310,6 +322,9 @@ anvil        :8545  Foundry 로컬 EVM — 부팅 시 mock USDC(EIP-3009) 배포
 | 하이브리드 커스터디 | Solidity 없이 빠르게, PaymentRail 뒤에서 에스크로로 교체 가능 | 온체인 에스크로(툴체인 무거움), 순수 시뮬레이션(차별점 약화) |
 | 에이전트 = 프로그래밍 클라이언트 | walking skeleton은 결제 코어. LLM은 상관성 낮음 | LLM 주도 에이전트(범위 과대) |
 | secp256k1 + EIP-712 | 키 하나로 DID·EVM·서명 3중 활용, x402/AP2 결 | ed25519(EVM 비호환) |
+| Boot 4.1 + Java 21 | 최신 프레임워크 유지 + 설치된 LTS. 25 novelty·미설치 회피, 3.5는 최신 아님 | Java 25(얼리어답터세), Boot 3.5(구버전) |
+| 결재대행 재사용 API+SDK 분리 | 다른 몰/서비스가 즉시 연동. commerce-mock은 한 소비자 | 커머스에 결제 로직 결합(재사용 불가) |
+| API 무버전 URL + 헤더 버전 | `/v1` URL은 낡음. 하위호환 진화 + 필요시 헤더(날짜) 버전 | URL `/v1/`(레거시 패턴) |
 | AP2 + x402 짝 | 위임 증명(AP2) + 온체인 실행(x402)이 원래 조합 | — |
 | schema.org + ACP Feed | 상품 표준이 commerce 헤드라인(ACP)과 결합 | Google Product Taxonomy(리테일 편향), GS1(과잉) |
 
