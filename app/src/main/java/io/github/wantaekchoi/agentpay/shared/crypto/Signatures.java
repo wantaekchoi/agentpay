@@ -10,7 +10,12 @@ import org.web3j.utils.Numeric;
 public final class Signatures {
     private Signatures() {}
 
-    public record KeyPair(BigInteger privateKey, BigInteger publicKey, String address) {}
+    public record KeyPair(BigInteger privateKey, BigInteger publicKey, String address) {
+        @Override
+        public String toString() {
+            return "KeyPair[address=" + address + "]";
+        }
+    }
 
     public static KeyPair generateKeyPair() {
         try {
@@ -34,7 +39,16 @@ public final class Signatures {
     }
 
     public static String recoverAddress(String message, String signatureHex) {
-        byte[] sig = Numeric.hexStringToByteArray(signatureHex);
+        byte[] sig;
+        try {
+            sig = Numeric.hexStringToByteArray(signatureHex);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("서명 hex 파싱 실패: " + signatureHex, e);
+        }
+        if (sig.length != 65) {
+            throw new IllegalArgumentException(
+                    "서명 길이가 올바르지 않습니다. 65바이트가 필요하지만 " + sig.length + "바이트입니다.");
+        }
         byte[] r = new byte[32];
         byte[] s = new byte[32];
         System.arraycopy(sig, 0, r, 0, 32);
