@@ -261,11 +261,11 @@ GET /catalog?type=&minPrice=&maxPrice=&currency=&tag=&maxBudget=
 
 ## 15. 모듈 / 패키지 구조 (제안)
 
-베이스 패키지 `com.raon.agentpay` *(조정 가능)*.
+베이스 패키지 `io.github.wantaekchoi.agentpay` (GitHub `wantaekchoi/agentpay`).
 
 ```
 :app  (core-service)
-  com.raon.agentpay
+  io.github.wantaekchoi.agentpay
     identity/      (Agent, User, AgentIdentity 포트, did:key/did:web 어댑터, A2A AgentCard)
     delegation/    (Mandate, MandateService 포트, PolicyEngine, AP2 어댑터, 후보 stub)
     custody/       (CustodyAccount, Deposit, Ledger, PaymentRail 포트, x402 어댑터)
