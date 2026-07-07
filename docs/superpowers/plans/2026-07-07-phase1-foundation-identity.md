@@ -6,7 +6,9 @@
 
 **Architecture:** 헥사고날 코어 모놀리스(`:app`) 단일 모듈로 시작한다. `identity` 패키지가 도메인(User·Agent) + 포트(`AgentIdentity`, `AgentDirectory`)를 소유하고, 서명·DID 유틸은 `shared` 패키지에 둔다. 모듈 경계는 ArchUnit 테스트로 강제한다. 영속성은 Postgres + Flyway, 테스트는 Testcontainers.
 
-**Tech Stack:** Java 25, Spring Boot 4.1.x, Gradle (Kotlin DSL), Spring Data JPA, Flyway, PostgreSQL, web3j (crypto), ArchUnit, Testcontainers, JUnit 5.
+**Tech Stack:** Java 25 (LTS), Spring Boot 4.1.0, Gradle 9.6.1 (Kotlin DSL, 데몬 JVM 25 고정), Spring Data JPA, Flyway, PostgreSQL, web3j (crypto), ArchUnit, Testcontainers, JUnit 5.
+
+> **부트스트랩 메모:** start.spring.io는 4.1-kotlin 생성에서 500(서버 버그)이라 미사용. 로컬 `gradle`(brew 설치됨) + JDK 21/25(설치됨)로 wrapper·빌드파일을 직접 생성한다. Task 1은 controller가 수행(스캐폴드 검증 후 Task 2~8 서브에이전트 dispatch).
 
 ## Global Constraints
 

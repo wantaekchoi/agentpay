@@ -50,3 +50,6 @@ Thumbs.db
 
 # --- 로컬 세션 작업 메모리 (badge-dev-workflow, 로컬 전용) ---
 /.claude/pending-workflow.json
+
+# --- subagent-driven-development 진행 원장 (로컬 스크래치) ---
+/.superpowers/
