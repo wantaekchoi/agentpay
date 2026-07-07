@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.wantaekchoi.agentpay.TestcontainersConfiguration;
 import io.github.wantaekchoi.agentpay.delegation.domain.Mandate;
+import io.github.wantaekchoi.agentpay.delegation.domain.MandateRepository;
 import io.github.wantaekchoi.agentpay.delegation.domain.MandateStatus;
 import io.github.wantaekchoi.agentpay.delegation.port.IssueMandateCommand;
 import io.github.wantaekchoi.agentpay.identity.domain.Agent;
@@ -34,6 +35,7 @@ class Ap2MandateServiceTest {
 
     @Autowired UserRepository users;
     @Autowired AgentRepository agents;
+    @Autowired MandateRepository mandates;
     @Autowired Ap2MandateService service;
 
     private User registerUser(Signatures.KeyPair kp) {
@@ -92,6 +94,30 @@ class Ap2MandateServiceTest {
         IssueMandateCommand cmd = commandFor(user.getId(), agent.getId(), data, sig);
 
         assertThatThrownBy(() -> service.issue(cmd)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void issue_withTamperedEconomicTerms_afterValidSignature_isRejected() {
+        // 가장 안전-critical한 속성: 서명은 사용자가 서명한 "그 정확한" 경제적 조건에 대해서만
+        // 유효하다. 여기서는 합법적인 MandateData(perTxLimit=1000)에 대해 정상 서명을 받은 뒤,
+        // 그 서명은 그대로 재사용하면서 커맨드의 perTxLimit만 변조(999_999_999)해 제출한다.
+        // currency/payee 형식은 그대로 유효하므로 형식 검증은 통과하고, recoverSigner가 변조된
+        // 데이터로 다시 해시를 계산해 서명 불일치를 잡아내야 한다.
+        var userKp = Signatures.generateKeyPair();
+        var agentKp = Signatures.generateKeyPair();
+        User user = registerUser(userKp);
+        Agent agent = registerAgent(user, agentKp);
+
+        var nonce = BigInteger.valueOf(9);
+        var data = dataFor(user.getAddress(), agent.getAddress(), nonce);
+        String sig = Eip712Mandate.sign(data, CHAIN_ID, userKp.privateKey());
+
+        IssueMandateCommand tampered = new IssueMandateCommand(user.getId(), agent.getId(), data.currency(),
+                BigInteger.valueOf(999_999_999L), data.totalLimit(), data.allowedPayees(), data.allowAny(),
+                data.validFrom(), data.validUntil(), data.nonce(), sig);
+
+        assertThatThrownBy(() -> service.issue(tampered)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(mandates.existsByUserIdAndNonce(user.getId(), nonce)).isFalse();
     }
 
     @Test

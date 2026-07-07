@@ -13,6 +13,7 @@ import io.github.wantaekchoi.agentpay.shared.crypto.Eip712Mandate;
 import io.github.wantaekchoi.agentpay.shared.error.NotFoundException;
 import java.math.BigInteger;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -53,7 +54,8 @@ public class Ap2MandateService implements MandateService {
         if (!CURRENCY_PATTERN.matcher(cmd.currency()).matches()) {
             throw new IllegalArgumentException("통화 형식이 올바르지 않습니다: " + cmd.currency());
         }
-        for (String payee : cmd.allowedPayees()) {
+        List<String> allowedPayees = cmd.allowedPayees() == null ? List.of() : cmd.allowedPayees();
+        for (String payee : allowedPayees) {
             if (!PAYEE_PATTERN.matcher(payee).matches()) {
                 throw new IllegalArgumentException("payee 형식이 올바르지 않습니다: " + payee);
             }
@@ -65,18 +67,18 @@ public class Ap2MandateService implements MandateService {
 
         Eip712Mandate.MandateData data = new Eip712Mandate.MandateData(
                 user.getAddress(), agent.getAddress(), cmd.currency(),
-                cmd.perTxLimit(), cmd.totalLimit(), cmd.allowedPayees(), cmd.allowAny(),
+                cmd.perTxLimit(), cmd.totalLimit(), allowedPayees, cmd.allowAny(),
                 cmd.validFrom(), cmd.validUntil(), cmd.nonce());
 
         String recovered = Eip712Mandate.recoverSigner(data, chainId, cmd.userSignature());
-        if (!recovered.equals(user.getAddress())) {
+        if (!recovered.equalsIgnoreCase(user.getAddress())) {
             throw new IllegalArgumentException("서명 불일치");
         }
 
-        Set<String> allowedPayees = new HashSet<>(cmd.allowedPayees());
+        Set<String> allowedPayeeSet = new HashSet<>(allowedPayees);
         Mandate mandate = new Mandate(UUID.randomUUID(), cmd.userId(), cmd.agentId(), cmd.currency(),
                 cmd.perTxLimit(), cmd.totalLimit(), BigInteger.ZERO,
-                cmd.allowAny(), allowedPayees,
+                cmd.allowAny(), allowedPayeeSet,
                 cmd.validFrom(), cmd.validUntil(), cmd.nonce(),
                 cmd.userSignature(), MandateStatus.ACTIVE);
         return mandates.save(mandate);
