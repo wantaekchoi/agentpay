@@ -46,7 +46,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return body(HttpStatus.BAD_REQUEST,
-                ex.getName() + " 파라미터 값이 올바르지 않습니다: " + ex.getValue());
+                "요청 파라미터 형식이 올바르지 않습니다: " + ex.getName() + " 값 " + ex.getValue());
     }
 
     private ResponseEntity<Map<String, String>> body(HttpStatus status, String message) {

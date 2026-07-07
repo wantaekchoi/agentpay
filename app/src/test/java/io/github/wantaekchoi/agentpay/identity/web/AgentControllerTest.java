@@ -83,7 +83,8 @@ class AgentControllerTest {
         mvc.perform(get("/agents/" + agentId + "/did.json"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(Matchers.containsString("did:web:")))
-                .andExpect(jsonPath("$.id").value(Matchers.containsString("%3A")))
+                .andExpect(jsonPath("$.id").value(Matchers.containsString("localhost%3A")))
+                .andExpect(jsonPath("$.id").value(Matchers.containsString(":agents:")))
                 .andExpect(jsonPath("$.verificationMethod[0].blockchainAccountId")
                         .value(Matchers.containsString(agentKp.address())));
     }
@@ -139,7 +140,9 @@ class AgentControllerTest {
         mvc.perform(get("/agents/not-a-uuid/card"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").exists())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.message")
+                        .value(Matchers.containsString("요청 파라미터 형식이 올바르지 않습니다")));
     }
 
     @Test
