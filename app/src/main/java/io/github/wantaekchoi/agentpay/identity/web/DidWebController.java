@@ -2,6 +2,7 @@ package io.github.wantaekchoi.agentpay.identity.web;
 
 import io.github.wantaekchoi.agentpay.identity.domain.Agent;
 import io.github.wantaekchoi.agentpay.identity.domain.AgentRepository;
+import io.github.wantaekchoi.agentpay.shared.error.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +22,7 @@ public class DidWebController {
     @GetMapping("/agents/{id}/did.json")
     public Map<String, Object> didDocument(@PathVariable UUID id, HttpServletRequest request) {
         Agent a = agents.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("agent 미존재: " + id));
+                .orElseThrow(() -> new NotFoundException("agent 미존재: " + id));
         String host = request.getServerName() + ":" + request.getServerPort();
         String didWeb = "did:web:" + host + ":agents:" + id;
         Map<String, Object> vm = Map.of(

@@ -86,4 +86,75 @@ class AgentControllerTest {
                 .andExpect(jsonPath("$.verificationMethod[0].blockchainAccountId")
                         .value(Matchers.containsString(agentKp.address())));
     }
+
+    @Test
+    void registerWithMalformedPublicKeyReturns400() throws Exception {
+        var ownerKp = Signatures.generateKeyPair();
+        User owner = new User(UUID.randomUUID(), "dave", "0xpub", ownerKp.address());
+        users.save(owner);
+
+        String body = json.writeValueAsString(Map.of(
+                "ownerUserId", owner.getId().toString(),
+                "publicKey", "0x123",
+                "alias", "shopper"));
+
+        mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void registerWithMissingOwnerReturns404() throws Exception {
+        var agentKp = Signatures.generateKeyPair();
+        String pubHex = Numeric.toHexStringWithPrefixZeroPadded(agentKp.publicKey(), 128);
+
+        String body = json.writeValueAsString(Map.of(
+                "ownerUserId", UUID.randomUUID().toString(),
+                "publicKey", pubHex,
+                "alias", "shopper"));
+
+        mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cardForUnknownAgentReturns404() throws Exception {
+        mvc.perform(get("/agents/" + UUID.randomUUID() + "/card"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void didDocumentForUnknownAgentReturns404() throws Exception {
+        mvc.perform(get("/agents/" + UUID.randomUUID() + "/did.json"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void duplicatePublicKeyReturns409() throws Exception {
+        var ownerKp = Signatures.generateKeyPair();
+        User owner = new User(UUID.randomUUID(), "erin", "0xpub", ownerKp.address());
+        users.save(owner);
+
+        var agentKp = Signatures.generateKeyPair();
+        String pubHex = Numeric.toHexStringWithPrefixZeroPadded(agentKp.publicKey(), 128);
+
+        String firstBody = json.writeValueAsString(Map.of(
+                "ownerUserId", owner.getId().toString(), "publicKey", pubHex, "alias", "shopper-1"));
+        mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content(firstBody))
+                .andExpect(status().isCreated());
+
+        String secondBody = json.writeValueAsString(Map.of(
+                "ownerUserId", owner.getId().toString(), "publicKey", pubHex, "alias", "shopper-2"));
+        mvc.perform(post("/agents").contentType(MediaType.APPLICATION_JSON).content(secondBody))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void verifyForUnknownAgentReturnsInvalidWithoutError() throws Exception {
+        String verifyBody = json.writeValueAsString(Map.of("message", "nonce", "signature", "0x00"));
+
+        mvc.perform(post("/agents/" + UUID.randomUUID() + "/verify")
+                        .contentType(MediaType.APPLICATION_JSON).content(verifyBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.valid").value(false));
+    }
 }

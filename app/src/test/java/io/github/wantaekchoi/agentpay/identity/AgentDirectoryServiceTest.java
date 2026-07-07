@@ -6,6 +6,7 @@ import io.github.wantaekchoi.agentpay.identity.domain.User;
 import io.github.wantaekchoi.agentpay.identity.domain.UserRepository;
 import io.github.wantaekchoi.agentpay.identity.port.AgentDirectory;
 import io.github.wantaekchoi.agentpay.shared.crypto.Signatures;
+import io.github.wantaekchoi.agentpay.shared.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import java.util.UUID;
 import org.web3j.utils.Numeric;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
@@ -38,5 +40,13 @@ class AgentDirectoryServiceTest {
         assertThat(card.did()).isEqualTo(agent.getDid());
         assertThat(card.address()).isEqualTo(agent.getAddress());
         assertThat(card.capabilities()).contains("payments");
+    }
+
+    @Test
+    void throwsNotFoundForUnknownAgent() {
+        UUID missingAgentId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> directory.cardFor(missingAgentId))
+                .isInstanceOf(NotFoundException.class);
     }
 }
