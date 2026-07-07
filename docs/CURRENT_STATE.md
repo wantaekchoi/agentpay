@@ -24,5 +24,11 @@
 - **T8 ArchUnit**: 모듈 경계 3규칙(+ 최종리뷰 수정으로 `..identity..`→web3j 금지 강화)
 - **최종 리뷰(opus)**: Critical 0. 게이트였던 Important #1(identity→web3j 누수 + vacuous 규칙) 수정 완료(commit e2bf918).
 
+## Phase 1 하드닝 — 완료 ✅ (branch `phase1-hardening` → main)
+최종리뷰 defer 항목 처리. **35 tests green.**
+- 전역 에러 핸들링 `web/ApiExceptionHandler`: NotFoundException→404, @Valid/IllegalArgument→400, DataIntegrityViolation→409, 무-hex/타입불일치→400. body `{error,message}`
+- `RegisterRequest` 검증(@Valid + publicKey `^0x[0-9a-fA-F]{128}$`), register 방어적 정규화, agent public_key 유니크(V2)
+- did:web 포트 `%3A` 인코딩, 테스트 갭 보강(리뷰어 지적한 vacuous 테스트 2건을 revert-검증으로 강화)
+
 ## 검증됨
 - 서버측 개인키 부재(DB/로그), recoverAddress 크래시 내성, sign→recover 라운드트립, did:key/base58 정확성(리뷰어 독립검증), 실 Postgres 통합테스트.
