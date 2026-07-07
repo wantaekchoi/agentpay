@@ -30,5 +30,15 @@
 - `RegisterRequest` 검증(@Valid + publicKey `^0x[0-9a-fA-F]{128}$`), register 방어적 정규화, agent public_key 유니크(V2)
 - did:web 포트 `%3A` 인코딩, 테스트 갭 보강(리뷰어 지적한 vacuous 테스트 2건을 revert-검증으로 강화)
 
+## Phase 2 — 완료 ✅ (위임 / AP2 Intent Mandate, branch `phase-2-delegation` → main)
+설계 `2026-07-08-phase2-delegation-design.md`, 계획 `2026-07-08-phase2-delegation.md`. **72 tests green.** 최종 whole-branch 리뷰(opus) Ready to merge, Critical 0.
+- **`shared/crypto/Eip712Mandate`**: EIP-712 서명·복구(sign·recover 동일 typedDataJson) + JSON escape(defense-in-depth)
+- **`delegation/domain`**: Mandate JPA + Flyway V3 + mandate_allowed_payees(LAZY, 서비스단 초기화)
+- **`delegation` 서비스**: `Ap2MandateService`(EIP-712 검증, 서버측 주소로 struct 재구성 → **tamper 거부 회귀테스트로 잠금**), `DefaultPolicyEngine`(6규칙+경계), `UcanMandateAdapter` stub(포트 교체성)
+- **`delegation/web/MandateController`**: POST /mandates·GET·list·revoke (포트 전용, currency/payee 형식검증)
+- **`identity` POST /users** (mandate 발급자 등록)
+- ArchUnit: `..delegation..`→web3j 금지 non-vacuous 검증
+
 ## 검증됨
 - 서버측 개인키 부재(DB/로그), recoverAddress 크래시 내성, sign→recover 라운드트립, did:key/base58 정확성(리뷰어 독립검증), 실 Postgres 통합테스트.
+- **Phase 2**: mandate 서명이 실제 강제 조건을 바인딩(변조 거부 실증), PolicyEngine 경계 정확, delegation 계층 경계 강제.
