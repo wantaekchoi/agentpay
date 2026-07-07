@@ -16,3 +16,5 @@ management:
     web:
       exposure:
         include: health
+agentpay:
+  chain-id: 31337

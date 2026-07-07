@@ -38,4 +38,20 @@ class ModuleBoundaryTest {
                 .should().beInterfaces();
         rule.check(classes);
     }
+
+    @Test
+    void delegationDoesNotDependOnWeb3j() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..delegation..")
+                .should().dependOnClassesThat().resideInAPackage("org.web3j..");
+        rule.check(classes);
+    }
+
+    @Test
+    void delegationDoesNotDependOnWebLayerFromDomain() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..delegation.domain..")
+                .should().dependOnClassesThat().resideInAPackage("..delegation.web..");
+        rule.check(classes);
+    }
 }
