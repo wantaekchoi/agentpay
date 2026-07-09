@@ -63,6 +63,8 @@ public class MandateController {
 
     public record MandateStatusResponse(UUID id, MandateStatus status) {}
 
+    public record RevokeRequest(@NotBlank String userSignature) {}
+
     @PostMapping
     public ResponseEntity<MandateStatusResponse> issue(@Valid @RequestBody IssueMandateRequest req) {
         IssueMandateCommand cmd = new IssueMandateCommand(
@@ -99,8 +101,8 @@ public class MandateController {
     }
 
     @PostMapping("/{id}/revoke")
-    public MandateStatusResponse revoke(@PathVariable UUID id) {
-        mandateService.revoke(id);
+    public MandateStatusResponse revoke(@PathVariable UUID id, @Valid @RequestBody RevokeRequest req) {
+        mandateService.revoke(id, req.userSignature());
         return new MandateStatusResponse(id, MandateStatus.REVOKED);
     }
 

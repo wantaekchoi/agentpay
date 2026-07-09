@@ -114,7 +114,12 @@ class MandateControllerTest {
                 .andExpect(jsonPath("$.validUntil").value(2000))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
 
-        mvc.perform(post("/mandates/" + mandateId + "/revoke"))
+        String revokeSig = Eip712Mandate.signRevocation(
+                new Eip712Mandate.RevocationData(user.address(), mandateId), CHAIN_ID, userKp.privateKey());
+        String revokeBody = json.writeValueAsString(Map.of("userSignature", revokeSig));
+
+        mvc.perform(post("/mandates/" + mandateId + "/revoke")
+                        .contentType(MediaType.APPLICATION_JSON).content(revokeBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(mandateId))
                 .andExpect(jsonPath("$.status").value("REVOKED"));
@@ -122,6 +127,38 @@ class MandateControllerTest {
         mvc.perform(get("/mandates/" + mandateId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("REVOKED"));
+    }
+
+    @Test
+    void revokeWithWrongKeySignature_returns400() throws Exception {
+        var userKp = Signatures.generateKeyPair();
+        var agentKp = Signatures.generateKeyPair();
+        var wrongKp = Signatures.generateKeyPair();
+        Registered user = registerUser(userKp, "grace");
+        Registered agent = registerAgent(user.id(), agentKp, "shopper");
+
+        var data = dataFor(user.address(), agent.address(), "USDC", BigInteger.valueOf(7));
+        String sig = Eip712Mandate.sign(data, CHAIN_ID, userKp.privateKey());
+        String body = json.writeValueAsString(mandateBody(user.id(), agent.id(), data, sig));
+
+        String issueResp = mvc.perform(post("/mandates").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String mandateId = json.readTree(issueResp).get("id").asText();
+
+        String wrongSig = Eip712Mandate.signRevocation(
+                new Eip712Mandate.RevocationData(user.address(), mandateId), CHAIN_ID, wrongKp.privateKey());
+        String revokeBody = json.writeValueAsString(Map.of("userSignature", wrongSig));
+
+        mvc.perform(post("/mandates/" + mandateId + "/revoke")
+                        .contentType(MediaType.APPLICATION_JSON).content(revokeBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.message").exists());
+
+        mvc.perform(get("/mandates/" + mandateId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
     }
 
     @Test
@@ -151,7 +188,10 @@ class MandateControllerTest {
 
     @Test
     void revokeUnknownId_returns404() throws Exception {
-        mvc.perform(post("/mandates/" + UUID.randomUUID() + "/revoke"))
+        // 서명 검증보다 mandate 존재 확인이 먼저 이뤄지므로, 형식만 갖춘 임의 서명이면 충분하다.
+        String body = json.writeValueAsString(Map.of("userSignature", "0xdead"));
+        mvc.perform(post("/mandates/" + UUID.randomUUID() + "/revoke")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").exists());
     }

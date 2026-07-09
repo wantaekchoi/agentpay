@@ -123,9 +123,18 @@ public class Ap2MandateService implements MandateService {
 
     @Override
     @Transactional
-    public void revoke(UUID id) {
+    public void revoke(UUID id, String userSignature) {
         Mandate mandate = mandates.findById(id)
                 .orElseThrow(() -> new NotFoundException("mandate 미존재: " + id));
+        User user = users.findById(mandate.getUserId())
+                .orElseThrow(() -> new NotFoundException("사용자 미존재: " + mandate.getUserId()));
+
+        Eip712Mandate.RevocationData data = new Eip712Mandate.RevocationData(user.getAddress(), id.toString());
+        String recovered = Eip712Mandate.recoverRevocationSigner(data, chainId, userSignature);
+        if (!recovered.equalsIgnoreCase(user.getAddress())) {
+            throw new IllegalArgumentException("revoke 서명 불일치");
+        }
+
         mandate.revoke();
         mandates.save(mandate);
     }

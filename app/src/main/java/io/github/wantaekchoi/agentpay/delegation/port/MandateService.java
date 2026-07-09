@@ -13,5 +13,5 @@ public interface MandateService {
 
     List<Mandate> listByUser(UUID userId);
 
-    void revoke(UUID id);
+    void revoke(UUID id, String userSignature);
 }

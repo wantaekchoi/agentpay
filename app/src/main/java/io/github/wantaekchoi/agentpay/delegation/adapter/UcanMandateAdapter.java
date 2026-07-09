@@ -31,7 +31,7 @@ public class UcanMandateAdapter implements MandateService {
     }
 
     @Override
-    public void revoke(UUID id) {
+    public void revoke(UUID id, String userSignature) {
         throw new UnsupportedOperationException("UCAN adapter not implemented");
     }
 }
