@@ -39,6 +39,13 @@
 - **`identity` POST /users** (mandate 발급자 등록)
 - ArchUnit: `..delegation..`→web3j 금지 non-vacuous 검증
 
+## Phase 2 백로그 — 완료 ✅ (branch `phase2-backlog` → main)
+- 설정 externalization(datasource env·chain-id 기반 eip155·절대 serviceEndpoint), issue sanity(validFrom≤validUntil·양수 한도), 테스트 보강(PolicyEngine not-yet-valid·User dup-409), **EIP-712 서명 인가 revoke**(소유자만, tamper 거부·wrong-key 400 검증). 81 tests green.
+
+## Guardrail G1 — ⏸ 진행 중 일시 중단 (branch `guardrail-g1`, 재개 절차는 NEXT_STEP.md)
+- 배경: `tf-ai-guardrail-research`(Python PoC, 발표 완료)를 agentpay 컴포넌트로 재구성 — **재사용 우선**(Java 오케스트레이션 + 기존 OPA/Presidio/Ollama를 포트 뒤 어댑터로, 폴백=무-인프라 라이브러리 모드), sLLM은 **비동기/섀도우로 무지연**, 라이브러리+서버 겸용, 데이터 자산화.
+- 완료: 설계 스펙 + 8태스크 플랜 커밋, **T1**(`:guardrail-core` 순수 Java 모듈 + model/port + RegexInputGuardrail, 4/4 green) 구현·커밋(`03ae8ac`) — **태스크 리뷰 미실시**.
+
 ## 검증됨
 - 서버측 개인키 부재(DB/로그), recoverAddress 크래시 내성, sign→recover 라운드트립, did:key/base58 정확성(리뷰어 독립검증), 실 Postgres 통합테스트.
-- **Phase 2**: mandate 서명이 실제 강제 조건을 바인딩(변조 거부 실증), PolicyEngine 경계 정확, delegation 계층 경계 강제.
+- **Phase 2**: mandate 서명이 실제 강제 조건을 바인딩(변조 거부 실증), PolicyEngine 경계 정확, delegation 계층 경계 강제. revoke는 소유자 서명 인가.
