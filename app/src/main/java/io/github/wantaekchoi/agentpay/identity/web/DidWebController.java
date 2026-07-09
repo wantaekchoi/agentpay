@@ -4,6 +4,7 @@ import io.github.wantaekchoi.agentpay.identity.domain.Agent;
 import io.github.wantaekchoi.agentpay.identity.domain.AgentRepository;
 import io.github.wantaekchoi.agentpay.shared.error.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,9 @@ import java.util.UUID;
 @RestController
 public class DidWebController {
     private final AgentRepository agents;
+
+    @Value("${agentpay.chain-id:31337}")
+    private long chainId;
 
     public DidWebController(AgentRepository agents) { this.agents = agents; }
 
@@ -31,7 +35,7 @@ public class DidWebController {
                 "id", didWeb + "#key-1",
                 "type", "EcdsaSecp256k1RecoveryMethod2020",
                 "controller", didWeb,
-                "blockchainAccountId", "eip155:1:" + a.getAddress());
+                "blockchainAccountId", "eip155:" + chainId + ":" + a.getAddress());
         return Map.of(
                 "@context", List.of("https://www.w3.org/ns/did/v1"),
                 "id", didWeb,

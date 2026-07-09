@@ -199,6 +199,54 @@ class Ap2MandateServiceTest {
     }
 
     @Test
+    void issue_withValidFromAfterValidUntil_throwsIllegalArgument() {
+        var userKp = Signatures.generateKeyPair();
+        var agentKp = Signatures.generateKeyPair();
+        User user = registerUser(userKp);
+        Agent agent = registerAgent(user, agentKp);
+
+        var validData = dataFor(user.getAddress(), agent.getAddress(), BigInteger.valueOf(10));
+        String sig = Eip712Mandate.sign(validData, CHAIN_ID, userKp.privateKey());
+        IssueMandateCommand cmd = new IssueMandateCommand(user.getId(), agent.getId(), validData.currency(),
+                validData.perTxLimit(), validData.totalLimit(), validData.allowedPayees(), validData.allowAny(),
+                2_000L, 1_000L, validData.nonce(), sig);
+
+        assertThatThrownBy(() -> service.issue(cmd)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void issue_withNonPositivePerTxLimit_throwsIllegalArgument() {
+        var userKp = Signatures.generateKeyPair();
+        var agentKp = Signatures.generateKeyPair();
+        User user = registerUser(userKp);
+        Agent agent = registerAgent(user, agentKp);
+
+        var validData = dataFor(user.getAddress(), agent.getAddress(), BigInteger.valueOf(11));
+        String sig = Eip712Mandate.sign(validData, CHAIN_ID, userKp.privateKey());
+        IssueMandateCommand cmd = new IssueMandateCommand(user.getId(), agent.getId(), validData.currency(),
+                BigInteger.ZERO, validData.totalLimit(), validData.allowedPayees(), validData.allowAny(),
+                validData.validFrom(), validData.validUntil(), validData.nonce(), sig);
+
+        assertThatThrownBy(() -> service.issue(cmd)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void issue_withNonPositiveTotalLimit_throwsIllegalArgument() {
+        var userKp = Signatures.generateKeyPair();
+        var agentKp = Signatures.generateKeyPair();
+        User user = registerUser(userKp);
+        Agent agent = registerAgent(user, agentKp);
+
+        var validData = dataFor(user.getAddress(), agent.getAddress(), BigInteger.valueOf(12));
+        String sig = Eip712Mandate.sign(validData, CHAIN_ID, userKp.privateKey());
+        IssueMandateCommand cmd = new IssueMandateCommand(user.getId(), agent.getId(), validData.currency(),
+                validData.perTxLimit(), BigInteger.valueOf(-1), validData.allowedPayees(), validData.allowAny(),
+                validData.validFrom(), validData.validUntil(), validData.nonce(), sig);
+
+        assertThatThrownBy(() -> service.issue(cmd)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void revoke_setsStatusRevoked() {
         var userKp = Signatures.generateKeyPair();
         var agentKp = Signatures.generateKeyPair();
