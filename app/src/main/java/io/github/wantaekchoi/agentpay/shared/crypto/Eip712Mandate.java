@@ -16,6 +16,8 @@ public final class Eip712Mandate {
             BigInteger perTxLimit, BigInteger totalLimit, List<String> allowedPayees,
             boolean allowAny, long validFrom, long validUntil, BigInteger nonce) {}
 
+    public record RevocationData(String user, String mandateId) {}
+
     public static String typedDataJson(MandateData d, long chainId) {
         String payees = d.allowedPayees().stream()
                 .map(p -> "\"" + esc(p) + "\"")
@@ -42,6 +44,21 @@ public final class Eip712Mandate {
                 + "}}";
     }
 
+    public static String revocationTypedDataJson(RevocationData d, long chainId) {
+        // EIP-712 JSON. 필드 순서는 types 정의 순서와 일치해야 함.
+        return "{"
+                + "\"types\":{"
+                + "\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"}],"
+                + "\"MandateRevocation\":["
+                + "{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"mandateId\",\"type\":\"string\"}"
+                + "]},"
+                + "\"primaryType\":\"MandateRevocation\","
+                + "\"domain\":{\"name\":\"agentpay\",\"version\":\"1\",\"chainId\":" + chainId + "},"
+                + "\"message\":{"
+                + "\"user\":\"" + esc(d.user()) + "\",\"mandateId\":\"" + esc(d.mandateId()) + "\""
+                + "}}";
+    }
+
     private static String esc(String s) {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
@@ -58,16 +75,24 @@ public final class Eip712Mandate {
         return b.toString();
     }
 
-    private static byte[] digest(MandateData d, long chainId) {
+    private static byte[] digest(String typedDataJson) {
         try {
-            return new StructuredDataEncoder(typedDataJson(d, chainId)).hashStructuredData();
+            return new StructuredDataEncoder(typedDataJson).hashStructuredData();
         } catch (Exception e) {
             throw new IllegalArgumentException("EIP-712 인코딩 실패", e);
         }
     }
 
-    public static String sign(MandateData d, long chainId, BigInteger privateKey) {
-        Sign.SignatureData sd = Sign.signMessage(digest(d, chainId), ECKeyPair.create(privateKey), false);
+    private static byte[] digest(MandateData d, long chainId) {
+        return digest(typedDataJson(d, chainId));
+    }
+
+    private static byte[] digestRevocation(RevocationData d, long chainId) {
+        return digest(revocationTypedDataJson(d, chainId));
+    }
+
+    private static String signDigest(byte[] digest, BigInteger privateKey) {
+        Sign.SignatureData sd = Sign.signMessage(digest, ECKeyPair.create(privateKey), false);
         byte[] out = new byte[65];
         System.arraycopy(sd.getR(), 0, out, 0, 32);
         System.arraycopy(sd.getS(), 0, out, 32, 32);
@@ -75,7 +100,7 @@ public final class Eip712Mandate {
         return Numeric.toHexString(out);
     }
 
-    public static String recoverSigner(MandateData d, long chainId, String signatureHex) {
+    private static String recoverFromDigest(byte[] digest, String signatureHex) {
         byte[] sig = Numeric.hexStringToByteArray(signatureHex);
         if (sig.length != 65) {
             throw new IllegalArgumentException("서명 길이 오류");
@@ -86,10 +111,26 @@ public final class Eip712Mandate {
         System.arraycopy(sig, 32, s, 0, 32);
         Sign.SignatureData sd = new Sign.SignatureData(sig[64], r, s);
         try {
-            BigInteger pub = Sign.signedMessageHashToKey(digest(d, chainId), sd);
+            BigInteger pub = Sign.signedMessageHashToKey(digest, sd);
             return Numeric.prependHexPrefix(Keys.getAddress(pub)).toLowerCase();
         } catch (Exception e) {
             throw new IllegalArgumentException("서명 복구 실패", e);
         }
+    }
+
+    public static String sign(MandateData d, long chainId, BigInteger privateKey) {
+        return signDigest(digest(d, chainId), privateKey);
+    }
+
+    public static String recoverSigner(MandateData d, long chainId, String signatureHex) {
+        return recoverFromDigest(digest(d, chainId), signatureHex);
+    }
+
+    public static String signRevocation(RevocationData d, long chainId, BigInteger privateKey) {
+        return signDigest(digestRevocation(d, chainId), privateKey);
+    }
+
+    public static String recoverRevocationSigner(RevocationData d, long chainId, String signatureHex) {
+        return recoverFromDigest(digestRevocation(d, chainId), signatureHex);
     }
 }

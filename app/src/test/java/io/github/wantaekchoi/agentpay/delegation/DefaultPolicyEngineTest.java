@@ -75,6 +75,17 @@ class DefaultPolicyEngineTest {
     }
 
     @Test
+    void rejects_whenNotYetValid() {
+        Mandate m = defaultMandate();
+        PaymentContext c = ctx(ALLOWED_PAYEE, BigInteger.valueOf(500), CURRENCY, VALID_FROM - 1);
+
+        PolicyDecision decision = engine.evaluate(m, c);
+
+        assertThat(decision.allowed()).isFalse();
+        assertThat(decision.reason()).contains("not-yet-valid");
+    }
+
+    @Test
     void rejects_whenCurrencyMismatch() {
         Mandate m = defaultMandate();
         PaymentContext c = ctx(ALLOWED_PAYEE, BigInteger.valueOf(500), "EUR", 1_500L);

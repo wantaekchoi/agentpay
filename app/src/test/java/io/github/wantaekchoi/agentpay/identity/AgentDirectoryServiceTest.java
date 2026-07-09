@@ -40,6 +40,7 @@ class AgentDirectoryServiceTest {
         assertThat(card.did()).isEqualTo(agent.getDid());
         assertThat(card.address()).isEqualTo(agent.getAddress());
         assertThat(card.capabilities()).contains("payments");
+        assertThat(card.serviceEndpoint()).isEqualTo("http://localhost:8080/agents/" + agent.getId());
     }
 
     @Test

@@ -52,6 +52,17 @@ public class Ap2MandateService implements MandateService {
         Agent agent = agents.findById(cmd.agentId())
                 .orElseThrow(() -> new NotFoundException("에이전트 미존재: " + cmd.agentId()));
 
+        if (cmd.validFrom() > cmd.validUntil()) {
+            throw new IllegalArgumentException(
+                    "validFrom은 validUntil보다 클 수 없습니다: " + cmd.validFrom() + " > " + cmd.validUntil());
+        }
+        if (cmd.perTxLimit() == null || cmd.perTxLimit().signum() <= 0) {
+            throw new IllegalArgumentException("perTxLimit은 0보다 커야 합니다: " + cmd.perTxLimit());
+        }
+        if (cmd.totalLimit() == null || cmd.totalLimit().signum() <= 0) {
+            throw new IllegalArgumentException("totalLimit은 0보다 커야 합니다: " + cmd.totalLimit());
+        }
+
         if (!CURRENCY_PATTERN.matcher(cmd.currency()).matches()) {
             throw new IllegalArgumentException("통화 형식이 올바르지 않습니다: " + cmd.currency());
         }
@@ -112,9 +123,18 @@ public class Ap2MandateService implements MandateService {
 
     @Override
     @Transactional
-    public void revoke(UUID id) {
+    public void revoke(UUID id, String userSignature) {
         Mandate mandate = mandates.findById(id)
                 .orElseThrow(() -> new NotFoundException("mandate 미존재: " + id));
+        User user = users.findById(mandate.getUserId())
+                .orElseThrow(() -> new NotFoundException("사용자 미존재: " + mandate.getUserId()));
+
+        Eip712Mandate.RevocationData data = new Eip712Mandate.RevocationData(user.getAddress(), id.toString());
+        String recovered = Eip712Mandate.recoverRevocationSigner(data, chainId, userSignature);
+        if (!recovered.equalsIgnoreCase(user.getAddress())) {
+            throw new IllegalArgumentException("revoke 서명 불일치");
+        }
+
         mandate.revoke();
         mandates.save(mandate);
     }

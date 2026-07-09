@@ -45,6 +45,24 @@ class UserControllerTest {
     }
 
     @Test
+    void duplicatePublicKeyReturns409() throws Exception {
+        var kp = Signatures.generateKeyPair();
+        String pubHex = Numeric.toHexStringWithPrefixZeroPadded(kp.publicKey(), 128);
+
+        String firstBody = json.writeValueAsString(Map.of(
+                "publicKey", pubHex,
+                "alias", "alice"));
+        mvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(firstBody))
+                .andExpect(status().isCreated());
+
+        String secondBody = json.writeValueAsString(Map.of(
+                "publicKey", pubHex,
+                "alias", "alice-2"));
+        mvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(secondBody))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void registerWithMalformedPublicKeyReturns400() throws Exception {
         String body = json.writeValueAsString(Map.of(
                 "publicKey", "0x123",

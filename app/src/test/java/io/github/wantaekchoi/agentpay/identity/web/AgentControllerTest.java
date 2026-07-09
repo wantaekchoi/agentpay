@@ -86,7 +86,9 @@ class AgentControllerTest {
                 .andExpect(jsonPath("$.id").value(Matchers.containsString("localhost%3A")))
                 .andExpect(jsonPath("$.id").value(Matchers.containsString(":agents:")))
                 .andExpect(jsonPath("$.verificationMethod[0].blockchainAccountId")
-                        .value(Matchers.containsString(agentKp.address())));
+                        .value(Matchers.containsString(agentKp.address())))
+                .andExpect(jsonPath("$.verificationMethod[0].blockchainAccountId")
+                        .value("eip155:31337:" + agentKp.address()));
     }
 
     @Test
