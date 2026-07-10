@@ -2,7 +2,17 @@
 
 > 다음 3~5개. 완료되면 `CURRENT_STATE.md`로 이동.
 
-## ⏸ 일시 중단 지점 (2026-07-08) — Guardrail G1 진행 중
+## 🗺 현재 단계 (2026-07-10) — 로드맵 관계자 논의 대기
+
+제품 로드맵 자료 작성 완료(`docs/superpowers/specs/2026-07-10-agentpay-roadmap.md` + 동명 `.html` 시각자료). **관계자 논의·표결 후 작업 재개**가 합의된 진행 방식.
+
+1. **관계자 논의** — 자료 §8 표결 5건 결정 (핵심: 표결 1 = R2를 credential 먼저 vs custody·결제 먼저)
+2. **R1 착수 (표결 무관 공통 확정 구간)** — G1 코어(T2~T4) 완주 = 아래 "일시 중단 지점"의 재개 절차 그대로 + 기존 경로(등록·mandate 발급) admission 소급 배선 + **회사 VC 스택 secp256k1/EIP-712 호환 스파이크**(표결 1의 입력)
+3. **표결 결과에 따라 R2-A(credential 코어) 또는 R2-B(custody·결제)** — 상세는 로드맵 문서 §6
+
+기존 Phase 3~7·G2~G5 번호는 로드맵의 R1~R4로 재편됨 (매핑은 로드맵 문서 §6 참조).
+
+## ⏸ 일시 중단 지점 (2026-07-08) — Guardrail G1 진행 중 (= 로드맵 R1의 본체)
 
 **중단 당시 상태** (branch `guardrail-g1`, origin push 완료):
 - 설계 스펙 커밋됨: `docs/superpowers/specs/2026-07-08-guardrail-component-design.md`
@@ -22,7 +32,6 @@
 ## 중단 전 백로그 (변동 없음)
 - 읽기/멀티테넌트 authz(인증 모델 필요), PolicyEngine `amount > 0`(Phase 4에서), revoke 서명 nonce/expiry, EIP-712 `verifyingContract`.
 
-## 보류된 로드맵
-- **Phase 3 커스터디 & 예치**(가드레일 G1에 밀려 보류): evm-gateway 위치는 "코어 내 EVM 어댑터(ChainGateway 포트)"로 결정까지 완료, 이후 설계 질문부터 재개.
-- Phase 4 결제 승인 → Phase 5 정산(x402) → Phase 6 커머스(ACP) → Phase 7 감사·E2E.
-- Guardrail G2(정산 게이팅·정책 피드백) → G3(동적정책 UI) → G4(MCP/A2A/훅 어댑터) → G5(후보 어댑터 확장).
+## 보류된 로드맵 (→ 2026-07-10 로드맵 문서로 재편됨)
+- 기존 Phase·G 번호와 신규 릴리즈 매핑: R1=G1 코어(T2~T4)+소급 배선+VC 스파이크 / R2-A=credential 코어(신설)+audit 선행분 / R2-B=Phase 3·4 / R3=남은 쪽+Phase 5+G2+G1 T5·T6 / R4=Phase 6·7+MCP+G1 T7·T8, 이후 G3~G5.
+- Phase 3 참고: evm-gateway 위치는 "코어 내 EVM 어댑터(ChainGateway 포트)"로 결정 완료, 이후 설계 질문부터 재개.

@@ -42,7 +42,12 @@
 ## Phase 2 백로그 — 완료 ✅ (branch `phase2-backlog` → main)
 - 설정 externalization(datasource env·chain-id 기반 eip155·절대 serviceEndpoint), issue sanity(validFrom≤validUntil·양수 한도), 테스트 보강(PolicyEngine not-yet-valid·User dup-409), **EIP-712 서명 인가 revoke**(소유자만, tamper 거부·wrong-key 400 검증). 81 tests green.
 
-## Guardrail G1 — ⏸ 진행 중 일시 중단 (branch `guardrail-g1`, 재개 절차는 NEXT_STEP.md)
+## 제품 로드맵 자료 — 작성 완료 (2026-07-10) ✅
+- `docs/superpowers/specs/2026-07-10-agentpay-roadmap.md`(정본) + 동명 `.html`(논의용 렌더링). 관계자 논의·표결용.
+- 구도: 표준×양측(요청/서빙) 매트릭스 = 판매 단위 · 가드레일은 전 admission 경로 횡단 기본 내장(단독판매는 파생) · 집중 라인업 2종(핀테크 위임증명·권한 VC / 커머스 수용 패키지, 각각 구성도+시퀀스+유스케이스) · 릴리즈 R1(공통 확정)→R2 분기(credential vs custody, 표결 1)→R3→R4 · 열린 질문(VASP·원화 레일·VC 스택 호환 스파이크 등) · 표결 5건.
+- 작성 과정: 다중 에이전트 설계(가드레일 내장·커머스·핀테크 병렬)+순서 설계+적대적 검토로 과장 정직화(임베드 납품 가능 여부, x402 서빙측 판매 범위, A2A 양측 done 표기).
+
+## Guardrail G1 — ⏸ 진행 중 일시 중단 (branch `guardrail-g1`, 재개 절차는 NEXT_STEP.md — 로드맵 R1의 본체)
 - 배경: `tf-ai-guardrail-research`(Python PoC, 발표 완료)를 agentpay 컴포넌트로 재구성 — **재사용 우선**(Java 오케스트레이션 + 기존 OPA/Presidio/Ollama를 포트 뒤 어댑터로, 폴백=무-인프라 라이브러리 모드), sLLM은 **비동기/섀도우로 무지연**, 라이브러리+서버 겸용, 데이터 자산화.
 - 완료: 설계 스펙 + 8태스크 플랜 커밋, **T1**(`:guardrail-core` 순수 Java 모듈 + model/port + RegexInputGuardrail, 4/4 green) 구현·커밋(`03ae8ac`) — **태스크 리뷰 미실시**.
 
