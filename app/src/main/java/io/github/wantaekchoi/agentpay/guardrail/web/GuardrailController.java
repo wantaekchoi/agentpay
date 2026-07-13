@@ -4,9 +4,9 @@ import io.github.wantaekchoi.agentpay.guardrail.Guardrail;
 import io.github.wantaekchoi.agentpay.guardrail.JpaGuardrailAudit;
 import io.github.wantaekchoi.agentpay.guardrail.domain.GuardrailInspection;
 import io.github.wantaekchoi.agentpay.guardrail.model.GuardrailDecision;
-import io.github.wantaekchoi.agentpay.guardrail.model.GuardrailRequest;
 import io.github.wantaekchoi.agentpay.guardrail.model.Status;
 import io.github.wantaekchoi.agentpay.shared.error.NotFoundException;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
@@ -43,8 +43,8 @@ public class GuardrailController {
             Instant createdAt) {}
 
     @PostMapping("/guardrail/inspect")
-    public GuardrailDecision inspect(@RequestBody GuardrailRequest req) {
-        return guardrail.inspect(req);
+    public GuardrailDecision inspect(@Valid @RequestBody GuardrailInspectRequest req) {
+        return guardrail.inspect(req.toCoreRequest());
     }
 
     // 저장된 sanitizedMessage만 반환한다 — 원문 message는 애초에 저장되지 않는다.

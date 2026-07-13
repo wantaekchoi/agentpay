@@ -2,8 +2,8 @@ package io.github.wantaekchoi.agentpay.guardrail.web;
 
 import io.github.wantaekchoi.agentpay.guardrail.Guardrail;
 import io.github.wantaekchoi.agentpay.guardrail.model.GuardrailDecision;
-import io.github.wantaekchoi.agentpay.guardrail.model.GuardrailRequest;
 import io.github.wantaekchoi.agentpay.guardrail.model.Status;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,8 +26,8 @@ public class AgentActionController {
     public record AgentActionResponse(Status status, String traceId, List<String> reasons, String detail) {}
 
     @PostMapping("/agent-actions")
-    public AgentActionResponse propose(@RequestBody GuardrailRequest req) {
-        GuardrailDecision decision = guardrail.inspect(req);
+    public AgentActionResponse propose(@Valid @RequestBody GuardrailInspectRequest req) {
+        GuardrailDecision decision = guardrail.inspect(req.toCoreRequest());
         return switch (decision.status()) {
             case ALLOWED -> new AgentActionResponse(
                     Status.ALLOWED, decision.traceId(), List.of(), "액션 실행됨(데모): " + req.action());
