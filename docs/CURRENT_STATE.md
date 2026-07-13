@@ -47,7 +47,7 @@
 - 구도: 표준×양측(요청/서빙) 매트릭스 = 판매 단위 · 가드레일은 전 admission 경로 횡단 기본 내장(단독판매는 파생) · 집중 라인업 2종(핀테크 위임증명·권한 VC / 커머스 수용 패키지, 각각 구성도+시퀀스+유스케이스) · 릴리즈 R1(공통 확정)→R2 분기(credential vs custody, 표결 1)→R3→R4 · 열린 질문(VASP·원화 레일·VC 스택 호환 스파이크 등) · 표결 5건.
 - 작성 과정: 다중 에이전트 설계(가드레일 내장·커머스·핀테크 병렬)+순서 설계+적대적 검토로 과장 정직화(임베드 납품 가능 여부, x402 서빙측 판매 범위, A2A 양측 done 표기).
 
-## Guardrail G1 코어 — 완료 ✅ (branch `guardrail-g1`, T1~T4 = 로드맵 R1의 본체. main 머지 대기)
+## Guardrail G1 코어 — 완료 ✅ (T1~T4 = 로드맵 R1의 본체. main 머지 완료 `1f3d100`, 머지 후 main 114 tests green)
 - 배경: `tf-ai-guardrail-research`(Python PoC, 발표 완료)를 agentpay 컴포넌트로 재구성 — **재사용 우선**(Java 오케스트레이션 + 기존 OPA/Presidio/Ollama를 포트 뒤 어댑터로, 폴백=무-인프라 라이브러리 모드), sLLM은 **비동기/섀도우로 무지연**, 라이브러리+서버 겸용, 데이터 자산화.
 - **T1**(`03ae8ac`): `:guardrail-core` 순수 Java 모듈 + model/port + `RegexInputGuardrail`(인젝션·PII 정규식 폴백).
 - **T2**(`8920514`): `JavaRulePolicy`(Java규칙 정책 폴백, 리서치 rego deny 규칙 이식) + `Guardrail` 오케스트레이터(동기 admission).
