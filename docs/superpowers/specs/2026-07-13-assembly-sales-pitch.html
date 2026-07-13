@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>agentpay — 이런 걸 만들어서 이렇게 팔면 어때요? (v1 · 논의용)</title>
+<title>agentpay — 이런 걸 만들어서 이렇게 팔면 어때요? (v2 · 논의용)</title>
 <style>
   :root {
     --bg: #f7f8fa; --card: #ffffff; --ink: #1a1d23; --muted: #6b7280;
@@ -37,8 +37,9 @@
 
   .tldr { background: var(--core-bg); border: 1.5px solid color-mix(in srgb, var(--core) 32%, transparent); border-radius: 14px; padding: 16px 18px; font-size: .92rem; }
   .tldr b { color: var(--core); }
-  .tldr ol { margin: 8px 0 0 18px; font-size: .88rem; }
+  .tldr ol { margin: 8px 0 8px 18px; font-size: .88rem; }
   .tldr li { padding: 2px 0; }
+  .tldr .pos { border-top: 1px dashed color-mix(in srgb, var(--core) 30%, transparent); margin-top: 10px; padding-top: 10px; font-size: .86rem; }
 
   .story { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: .87rem; margin: 12px 0; }
   .story b { color: var(--adapter); }
@@ -69,6 +70,11 @@
   td.nm { font-weight: 700; white-space: nowrap; }
   td.nm small { display: block; font-weight: 400; color: var(--muted); font-family: ui-monospace, monospace; font-size: .68rem; }
 
+  .buy { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 12px 0; }
+  .buy .b { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: .8rem; }
+  .buy .b b { display: block; font-size: .86rem; margin-bottom: 3px; }
+  .buy .b small { color: var(--muted); }
+
   .gate { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; margin: 12px 0; counter-reset: gate; }
   .gate .g { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 13px; font-size: .78rem; position: relative; }
   .gate .g::before { counter-increment: gate; content: counter(gate); position: absolute; top: -10px; left: 12px; background: var(--core); color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
@@ -92,7 +98,7 @@
 <body>
 
 <h1>"이런 걸 만들어서, 이렇게 팔면 어때요?"</h1>
-<div class="sub">agentpay 조립형 판매 제안 v1 · 2026-07-13 · <b>사전 지식 없이 읽는 문서입니다</b> — 영업·개발 관점의 질문에 먼저 답합니다</div>
+<div class="sub">agentpay 조립형 판매 제안 <b>v2</b> · 2026-07-13 · <b>사전 지식 없이 읽는 문서입니다</b> · 결정 근거 정본: <code>2026-07-13-assembly-sales-model-design.md</code></div>
 
 <div class="tldr">
   <b>30초 요약.</b> AI 에이전트가 사람 대신 검색하고 주문하고 <b>결제까지 하는</b> 흐름이 오고 있습니다(구글·오픈AI·스트라이프가 각자 표준을 밀며 경쟁 중).
@@ -104,23 +110,23 @@
   </ol>
   우리는 이걸 국제 표준 규격의 <b>부품</b>으로 만들어 두고, 고객 문제 단위의 <b>상품 3개</b>로 팝니다.
   조립형이라 <b>"이미 있는 건 빼고, 없는 것만 사세요"</b>가 가능한 게 차별점입니다.
-  <br><b>포지셔닝 한 줄:</b> 큰 그림은 로드맵일 뿐 첫 거래는 부품 하나부터고, 부품이 "기본기"인 건 약점이 아니라 노리는 자리입니다 — PG·TLS처럼 <b>만들 수 있지만 아무도 직접 만들어 유지하지 않는 인프라</b>가 목표.
+  <div class="pos"><b>포지셔닝 한 줄:</b> 큰 그림은 로드맵일 뿐 <b>첫 거래는 부품 하나</b>부터. 부품이 "기본기"인 건 약점이 아니라 노리는 자리입니다 — PG·TLS처럼 <b>만들 수 있지만 아무도 직접 만들어 유지하지 않는 인프라</b>가 목표.</div>
 </div>
 
 <h2>1. 어떤 상황에서 팔리는 물건인가 <span class="who">영업·개발 공통</span></h2>
 <div class="story">
   실제 장면 하나: 고객이 자기 AI 비서에게 "이번 달 사무용품 30만원어치 주문해 줘"라고 시킵니다.
-  에이전트가 쇼핑몰에 접속해 주문을 넣는 순간, <b>쇼핑몰은</b> 이 손님이 진짜 위임받은 에이전트인지 어떻게 알까요?
+  에이전트가 쇼핑몰에 접속해 주문을 넣는 순간 — <b>쇼핑몰은</b> 이 손님이 진짜 위임받은 에이전트인지 어떻게 알까요?
   <b>고객 회사는</b> 에이전트가 30만원 한도를 지켰는지, 이상한 사이트에 접속하진 않았는지 누가 보장하죠?
   <b>금융사는</b> "누가 언제 뭘 허락했는지" 감사 기록을 어떻게 남기죠?
   — 이 빈칸들이 우리가 파는 자리입니다. 각 빈칸에 국제 표준(DID·AP2·x402 등)이 이미 생기고 있고, 우리는 <b>표준 그대로</b> 구현합니다(자체 규격 고집 없음 → 고객이 종속을 겁내지 않아도 됨).
 </div>
 
-<h2>2. 진열대 — 파는 건 부품이 아니라 "문제 해결" 3개 <span class="who">영업용</span></h2>
-<p class="note">고객은 모듈을 사지 않습니다. 자기 문제가 사라지는 걸 삽니다. 전면 상품은 3개로 좁힙니다.</p>
+<h2>2. 뭘 파나 — 진열대에는 상품 3개뿐 <span class="who">영업용</span></h2>
+<p class="note">고객은 모듈을 사지 않습니다. 자기 문제가 사라지는 걸 삽니다. 부품(뒷면, §5)은 많지만 전면 상품은 3개로 좁힙니다.</p>
 <div class="shelf">
   <div class="prod hero">
-    <span class="tag">진입 상품 · 지금 데모 가능</span>
+    <span class="tag">진입 상품 · 오늘 라이브 데모 가능</span>
     <h3>🛡 AI 검문소 (가드레일)</h3>
     <div class="pain"><b>고객의 공포:</b> "AI 에이전트 도입하고 싶은데, 얘가 사고 치면 누가 책임져?"</div>
     <ul class="give">
@@ -129,7 +135,7 @@
       <li>전 건 기록: 감사 대비 검문 일지 자동 축적</li>
       <li>속도 저하 없음: 판정은 즉시, AI 정밀분석은 뒤에서 비동기로</li>
     </ul>
-    <div class="stat"><b>상태:</b> <span class="st st-done"></span>핵심 엔진+서버 완성(자동 시험 114건, 최종 리뷰 통과) — <b>오늘 라이브 데모 가능</b>(절차: docs/guardrail-demo.md). 유일하게 단품으로도 완결되는 상품이라 첫 거래(land)용</div>
+    <div class="stat"><b>상태:</b> <span class="st st-done"></span>엔진+서버 완성(자동 시험 114건, 최종 리뷰·main 머지 완료) — 시연 절차 <code>docs/guardrail-demo.md</code>. <b>에이전트 결제가 오기 전에도 사내 AI 챗봇·자동화에 오늘 가치가 있는 유일한 상품 — 그래서 첫 거래(land)용</b></div>
   </div>
   <div class="prod">
     <span class="tag">주력 세트 A</span>
@@ -155,7 +161,7 @@
   </div>
 </div>
 
-<h2>3. 파는 방식 — "조립형"의 진짜 의미 <span class="who">영업용</span></h2>
+<h2>3. 어떻게 파나 — "조립형"의 진짜 의미 <span class="who">영업용</span></h2>
 <p class="note">잘게 팔겠다는 게 아닙니다. 나사·볼트를 사는 고객은 없습니다. 조립형은 아래 3가지를 가능하게 하는 <b>납품 방식</b>입니다.</p>
 <div class="sell3">
   <div class="s"><b>① 빼기 — 견적 경쟁력</b>"자체 로그인·신원 시스템 있어요" → 그 부품 빼고 그만큼 견적에서 뺍니다. 붙박이 일체형 경쟁사는 이 말을 못 합니다.<br><small>경쟁 입찰에서 이기는 지점</small></div>
@@ -164,36 +170,12 @@
 </div>
 <p class="note">가구에 비유하면: 고객은 <b>책상</b>을 삽니다. 다리 4개를 낱개로 진열하진 않지만 — 상판이 이미 있으면 상판값은 안 받고, 다리가 부러지면 다리만 교체해 주는 가게. 그게 조립형입니다.</p>
 
-<h2>4. 부품표(BOM) — 견적·납품 때 꺼내는 뒷면 <span class="who">개발용</span></h2>
-<p class="note">위 상품들이 실제로는 아래 부품의 조합입니다. "기능 완성"과 "부품 자격"(단독 납품 가능)은 다르게 표기합니다 — 지금 붙박이인 것도 있어서요.</p>
-<div class="tbl-wrap"><table>
-  <tr><th>부품</th><th>혼자서 하는 일</th><th>들어가는 상품</th><th>오늘 상태 (정직 표기)</th></tr>
-  <tr><td class="nm">🛡 검문소<small>guardrail-core</small></td><td>아무 AI 시스템에나 붙는 실행 전 검문. 다른 부품 없이 동작하게 이미 설계됨</td><td>전 상품 기본 내장 + 단품</td><td><span class="st st-done"></span>코어+서버 완성(검문 API·감사 DB 포함), 남은 건 퀵스타트·설명서 — <b>부품 자격 1호 임박</b></td></tr>
-  <tr><td class="nm">🪪 명부<small>identity-core</small></td><td>에이전트 등록·"본인 맞나" 서명 확인</td><td>핀테크·커머스 세트</td><td><span class="st st-done"></span>기능 완성 — 단, 본체 붙박이(분리 작업은 R2)</td></tr>
-  <tr><td class="nm">📜 위임장<small>delegation-core</small></td><td>우리 명부 없이도 외부 위임장의 서명·조건(한도·기간·가맹점) 검증</td><td>핀테크 세트 중심</td><td><span class="st st-done"></span>기능 완성(위·변조 거부 잠김) — 붙박이(R2 분리)</td></tr>
-  <tr><td class="nm">🎫 권한증<small>credential-core</small></td><td>에이전트별 권한 증명서(VC) 발급·확인·회수</td><td>핀테크 세트</td><td><span class="st st-todo"></span>미착수 — 사내 DID/VC 인프라 호환 확인이 선행</td></tr>
-  <tr><td class="nm">🏦 금고·결제<small>payment-core</small></td><td>예치금 장부 + 결제 승인·차감(단일 트랜잭션), 송금은 창구 분리</td><td>커머스 세트·완제품</td><td><span class="st st-todo"></span>미착수 (로드맵 분기 표결에 따라 순서 결정)</td></tr>
-  <tr><td class="nm">🧾 감사일지<small>audit-core</small></td><td>지울 수 없는 기록(append-only) + 증빙 영수증 발급</td><td>전 상품 (검문 일지는 검문소가 선행 증명)</td><td><span class="st st-todo"></span>미착수</td></tr>
-  <tr><td class="nm">🔑 고객 키·서명기<small>agentpay-client</small></td><td>고객 손의 키 보관·위임장 서명. <b>월렛 질문의 답이 이 부품</b>(아래 Q&amp;A)</td><td>전 상품의 클라이언트 짝</td><td><span class="st st-todo"></span>미착수 — 데모용 CLI가 원형</td></tr>
-  <tr><td class="nm">🔩 공용 원자부품<small>agentpay-commons</small></td><td>전자서명·DID 인코딩. 단품 아님 — 모든 부품에 동봉되는 포함재</td><td>전 부품에 동봉</td><td><span class="st st-done"></span>완성</td></tr>
-</table></div>
-
-<h2>5. "부품 자격" 5조건 — 뒷면의 기술 보증서 <span class="who">개발용</span></h2>
-<p class="note">아무 모듈이나 부품이라 부르지 않습니다. 아래 5조건을 통과해야 BOM에 "단독 납품 가능"으로 오릅니다. (③이 3장의 "꽂힌다"를 기술적으로 보증)</p>
-<div class="gate">
-  <div class="g"><b>알맹이가 순수</b>스프링·DB·타 부품 없이 컴파일·동작. 공유는 원자부품만.<small>→ 어디든 들어감</small></div>
-  <div class="g"><b>연결은 콘센트 규격</b>외부 도구는 포트/어댑터로만 — 고객 인프라에 맞춰 플러그 교체.<small>→ 인프라 강요 없음</small></div>
-  <div class="g"><b>심어도·세워도</b>라이브러리 임베드 + 독립 서버(HTTP) 두 형태 모두 제공.<small>→ 언어·환경 불문</small></div>
-  <div class="g"><b>혼자서도 일한다</b>타 부품 없이 실사용 시나리오가 도는 걸 자동 시험으로 증명.<small>→ "쪼갠 의미"의 검증</small></div>
-  <div class="g"><b>설명서 동봉</b>독립 퀵스타트 + 5분 데모 — 받은 날 붙여본다.<small>→ 납품 완결</small></div>
-</div>
-
-<h2>6. 진입장벽 정면 대응 — "도입 사다리" <span class="who">영업·개발 공통</span></h2>
+<h2>4. 어떻게 들어가나 — 진입장벽 정면 대응 "도입 사다리" <span class="who">영업·개발 공통</span></h2>
 <p class="note">이 시장의 진짜 적은 경쟁사가 아니라 도입 장벽입니다. 장벽마다 낮추는 장치를 제품에 내장하고, 고객은 사다리를 한 칸씩만 오릅니다.</p>
 <div class="tbl-wrap"><table>
   <tr><th>장벽</th><th>고객의 속마음</th><th>낮추는 장치</th></tr>
   <tr><td class="nm">닭-달걀</td><td>"에이전트 손님이 아직 없는데 왜 지금 사?"</td><td>검문소는 에이전트 결제 이전에도 <b>사내 AI 챗봇·자동화에 오늘 가치</b> — "미래 대비"가 아니라 "지금 문제"로 판매</td></tr>
-  <tr><td class="nm">크립토·규제</td><td>"USDC? 월렛? VASP? 우리 회사는 못 함"</td><td>사용자는 크립토 노출 0(커스터디+임베디드 키). 결제 레일은 포트 뒤라 <b>원화 레일(기존 PG·계좌) 1급 승격 가능</b> — 크립토는 옵션</td></tr>
+  <tr><td class="nm">크립토·규제</td><td>"USDC? 월렛? VASP? 우리 회사는 못 함"</td><td>사용자는 크립토 노출 0(커스터디+임베디드 키). 결제 레일은 교체형이라 <b>원화 레일(기존 PG·계좌) 1급 승격 가능</b> — 크립토는 옵션</td></tr>
   <tr><td class="nm">통합 부담</td><td>"새 인프라 붙였다 사고 나면?"</td><td><b>관찰(shadow) 모드</b>: 차단 없이 기록만 하는 모드로 2주 무위험 체험 → 잡힌 인젝션·PII 리포트가 곧 구매 근거</td></tr>
   <tr><td class="nm">신뢰</td><td>"작은 팀 새 플랫폼을 어떻게 믿나"</td><td>국제 표준 포맷+무버전 API라 <b>떠나는 비용이 낮음</b>("언제든 떠날 수 있게 만들었으니 믿으라") + 사내 DID/VC·금융권 레퍼런스</td></tr>
 </table></div>
@@ -204,35 +186,58 @@
   <div class="b"><b>3단계 — 결제</b>위임된 결제 수용까지. 완제품 그림 도달.<br><small>커머스 세트/완제품</small></div>
 </div>
 
-<h2>7. 개발팀장이 바로 물어볼 것들 <span class="who">Q&amp;A</span></h2>
+<h2>5. 뒷면 — 부품표(BOM)와 부품 자격 <span class="who">개발용</span></h2>
+<p class="note">§2의 상품들이 실제로는 아래 부품의 조합입니다. "기능 완성"과 "부품 자격"(단독 납품 가능)은 다르게 표기합니다 — 지금 붙박이인 것도 있어서요.</p>
+<div class="tbl-wrap"><table>
+  <tr><th>부품</th><th>혼자서 하는 일</th><th>들어가는 상품</th><th>오늘 상태 (정직 표기)</th></tr>
+  <tr><td class="nm">🛡 검문소<small>guardrail-core</small></td><td>아무 AI 시스템에나 붙는 실행 전 검문. 다른 부품 없이 동작하게 이미 설계됨</td><td>전 상품 기본 내장 + 단품</td><td><span class="st st-done"></span>코어+서버 완성(검문 API·감사 DB 포함), 남은 건 퀵스타트·설명서 — <b>부품 자격 1호 임박</b></td></tr>
+  <tr><td class="nm">🪪 명부<small>identity-core</small></td><td>에이전트 등록·"본인 맞나" 서명 확인</td><td>핀테크·커머스 세트</td><td><span class="st st-done"></span>기능 완성 — 단, 본체 붙박이(분리 작업은 R2)</td></tr>
+  <tr><td class="nm">📜 위임장<small>delegation-core</small></td><td>우리 명부 없이도 외부 위임장의 서명·조건(한도·기간·가맹점) 검증</td><td>핀테크 세트 중심</td><td><span class="st st-done"></span>기능 완성(위·변조 거부 잠김) — 붙박이(R2 분리)</td></tr>
+  <tr><td class="nm">🎫 권한증<small>credential-core</small></td><td>에이전트별 권한 증명서(VC) 발급·확인·회수</td><td>핀테크 세트</td><td><span class="st st-todo"></span>미착수 — 사내 DID/VC 인프라 호환 확인이 선행</td></tr>
+  <tr><td class="nm">🏦 금고·결제<small>payment-core</small></td><td>예치금 장부 + 결제 승인·차감(단일 트랜잭션), 송금은 창구 분리</td><td>커머스 세트·완제품</td><td><span class="st st-todo"></span>미착수 (로드맵 분기 표결에 따라 순서 결정)</td></tr>
+  <tr><td class="nm">🧾 감사일지<small>audit-core</small></td><td>지울 수 없는 기록(append-only) + 증빙 영수증 발급</td><td>전 상품 (검문 일지는 검문소가 선행 증명)</td><td><span class="st st-todo"></span>미착수</td></tr>
+  <tr><td class="nm">🔑 고객 키·서명기<small>agentpay-client</small></td><td>고객 손의 키 보관·위임장 서명. <b>월렛 질문의 답이 이 부품</b>(§6 Q&amp;A)</td><td>전 상품의 클라이언트 짝</td><td><span class="st st-todo"></span>미착수 — 데모용 CLI가 원형</td></tr>
+  <tr><td class="nm">🔩 공용 원자부품<small>agentpay-commons</small></td><td>전자서명·DID 인코딩. 단품 아님 — 모든 부품에 동봉되는 포함재</td><td>전 부품에 동봉</td><td><span class="st st-done"></span>완성</td></tr>
+</table></div>
+
+<p class="note"><b>부품 자격 5조건</b> — 아무 모듈이나 부품이라 부르지 않습니다. 아래를 전부 통과해야 BOM에 "단독 납품 가능"으로 오릅니다. (③이 §3의 "꽂힌다", ④가 "쪼갠 의미"를 각각 기술적으로 보증)</p>
+<div class="gate">
+  <div class="g"><b>알맹이가 순수</b>스프링·DB·타 부품 없이 컴파일·동작. 공유는 원자부품만.<small>→ 어디든 들어감</small></div>
+  <div class="g"><b>연결은 콘센트 규격</b>외부 도구는 포트/어댑터로만 — 고객 인프라에 맞춰 플러그 교체.<small>→ 인프라 강요 없음</small></div>
+  <div class="g"><b>심어도·세워도</b>라이브러리 임베드 + 독립 서버(HTTP) 두 형태 모두 제공.<small>→ 언어·환경 불문</small></div>
+  <div class="g"><b>혼자서도 일한다</b>타 부품 없이 실사용 시나리오가 도는 걸 자동 시험으로 증명.<small>→ "쪼갠 의미"의 검증</small></div>
+  <div class="g"><b>설명서 동봉</b>독립 퀵스타트 + 5분 데모 — 받은 날 붙여본다.<small>→ 납품 완결</small></div>
+</div>
+
+<h2>6. 개발팀장이 바로 물어볼 것들 <span class="who">Q&amp;A</span></h2>
 <div class="qa">
   <div class="q"><b>이 정도면 우리 팀이 직접 만들면 되지 않나? (build vs buy)</b>
     <span>맞다 — 부품 하나하나는 만들 수 있다. 그래서 이건 PG·TLS 라이브러리와 같은 "기본이라서 사는" 자리를 노린다. 사는 이유 셋: ① <b>유지가 세금</b> — 표준이 전쟁 중(AP2 vs ACP, x402, VC)이라 규격 추적이 상시 유지보수 비용인데 그걸 우리가 흡수 ② <b>틀리면 비싼 영역</b> — 위임·검문의 증명 사슬은 감사·규제 대응 품질이 생명("자체 regex"와 "테스트로 잠긴 증명 사슬"은 감사장에서 무게가 다름) ③ <b>우리만 되는 연결</b> — 사내 DID/VC 인프라·금융권 신뢰와의 접속은 내재화·외산이 못 따라옴. 요약: "만들 수 있지만 계속 유지하긴 싫은 기본기"가 상품이다.</span></div>
   <div class="q"><b>고객(사용자)이 월렛을 만들어야 하는 거 아닌가? 그거 진입장벽인데.</b>
-    <span>월렛 온보딩은 3단 폴백으로 풉니다. ⓐ 사내 DID 월렛·인증 앱에 서명 키를 얹기(사용자 기반 재활용 — 호환 검증이 로드맵 R1 스파이크) → ⓑ 안 되면 <b>SDK 임베디드 키</b>: 고객 앱 안에서 키 생성·디바이스 보안영역 보관, 사용자는 월렛 개념을 모른 채 가입만 → ⓒ 크립토 익숙한 고객만 외부 월렛(BYO). 어느 쪽이든 <b>서버는 서명 검증만 하므로 서버 설계는 불변</b> — 바뀌는 건 클라이언트 포장뿐.</span></div>
+    <span>월렛 온보딩은 3단 폴백으로 풉니다. ⓐ 사내 DID 월렛·인증 앱에 서명 키를 얹기(사용자 기반 재활용 — 호환 검증이 로드맵 R1 스파이크) → ⓑ 안 되면 <b>SDK 임베디드 키</b>: 고객 앱 안에서 키 생성·디바이스 보안영역 보관, 사용자는 월렛 개념을 모른 채 가입만 → ⓒ 크립토 익숙한 고객만 외부 월렛(BYO). 어느 쪽이든 <b>서버는 서명 검증만 하므로 서버 설계는 불변</b> — 바뀌는 건 클라이언트 포장뿐. 월렛 앱 협조가 0이어도 ⓑ로 제품이 성립한다.</span></div>
   <div class="q"><b>서버가 고객 개인키를 들고 있는 건 아니지?</b>
     <span>아닙니다. 개인키의 서버 저장·로그 기록 금지가 프로젝트 불변 제약이고, 자동 검사(아키텍처 테스트)로 강제합니다. 서버에는 공개키·주소·DID만.</span></div>
   <div class="q"><b>표준이 아직 전쟁 중인데 (구글 AP2 vs 오픈AI ACP) 잘못 베팅하면?</b>
     <span>그래서 코어는 표준을 모르고, 표준은 교체형 어댑터로만 둡니다. 진영이 바뀌면 어댑터만 갈아 끼움 — 양 진영 모두 수용이 기본 방침.</span></div>
   <div class="q"><b>다 만들어진 거야? 뭘 믿고 팔지?</b>
-    <span>아래 정직성 박스 참조. 오늘 기준 라이브 시연 가능: 에이전트 등록·신원확인·위임장 발급/검증/회수 + 검문소 전체(검문 API·감사 기록·비동기 심층분석까지) — 자동 시험 114건 green, whole-branch 최종 리뷰 통과. 나머지는 로드맵 순서대로이며, 이 문서의 상태 표기는 코드·테스트와 1:1 대응.</span></div>
+    <span>아래 정직성 박스 참조. 오늘 기준 라이브 시연 가능: 에이전트 등록·신원확인·위임장 발급/검증/회수 + 검문소 전체(검문 API·감사 기록·비동기 심층분석까지) — 자동 시험 114건 green, 최종 리뷰·main 머지 완료. 나머지는 로드맵 순서대로이며, 이 문서의 상태 표기는 코드·테스트와 1:1 대응.</span></div>
   <div class="q"><b>이거 규제(가상자산사업자) 걸리는 거 아닌가?</b>
-    <span>열린 질문으로 선점해 뒀습니다 — 예치·송금 구간의 VASP 해당 여부와 원화 레일은 답을 지어내지 않고 검토 항목으로 관리 중. 검문소·위임·권한증 상품은 이 질문과 독립적으로 판매 가능.</span></div>
+    <span>열린 질문으로 선점해 뒀습니다 — 예치·송금 구간의 VASP 해당 여부와 원화 레일은 답을 지어내지 않고 검토 항목으로 관리 중. 결제 레일이 교체형이라 원화 레일(기존 PG·계좌)을 기본으로 승격하는 선택지도 있음(§4). 검문소·위임·권한증 상품은 이 질문과 독립적으로 판매 가능.</span></div>
 </div>
 
+<h2>7. 정직성 박스 &amp; 결정 요청 <span class="who">영업·개발 공통</span></h2>
 <div class="honesty">
   <b>정직성 박스 — 오늘 팔 수 있는 것 vs 만드는 중인 것.</b><br>
-  ① 오늘 라이브 데모 가능: 에이전트 등록·신원확인·전자 위임장(발급→검증→변조 거부→회수) + <b>검문소 전체</b>(검문 API·감사 일지 DB·비동기 심층분석) — 실제 서명·실제 DB로 시연, 절차는 docs/guardrail-demo.md.
-  ② 설계만 있고 코드 없음: 권한증(VC)·금고/결제·감사일지·커머스 커넥터·고객 SDK.
-  ③ "부품 자격 5조건"을 오늘 전부 통과한 부품: <b>아직 0개</b> — 검문소는 5조건 중 설명서·퀵스타트만 남아 1호 임박, 명부·위임장은 기능 완성이지만 본체에서 분리 전.
+  ① 오늘 라이브 데모 가능: 에이전트 등록·신원확인·전자 위임장(발급→검증→변조 거부→회수) + <b>검문소 전체</b>(검문 API·감사 일지 DB·비동기 심층분석) — 실제 서명·실제 DB로 시연, 절차는 <code>docs/guardrail-demo.md</code>.
+  ② 설계만 있고 코드 없음: 권한증(VC)·금고/결제·감사일지·커머스 커넥터·고객 SDK·관찰 모드(작은 작업, 백로그 등록됨).
+  ③ "부품 자격 5조건"을 오늘 전부 통과한 부품: <b>아직 0개</b> — 검문소는 설명서·퀵스타트만 남아 1호 임박, 명부·위임장은 기능 완성이지만 본체에서 분리 전(R2).
   이 문서의 어떤 표기도 이 사실보다 앞서 나가지 않습니다.
 </div>
-
 <div class="ask">
-  <b>이 자리에서 결정해 주면 좋은 것 (1건):</b> 이 "조립형 납품 모델"(빼기·더하기 가능, 부품 자격 5조건을 분리 작업의 완료 기준으로)을 정식 판매 방식으로 채택할지 — 채택 시 기존 로드맵의 빌드 순서는 그대로, <b>"모듈 분리가 끝났다"의 기준만 5조건으로 명문화</b>됩니다. (기존 로드맵 표결 5건에 6번으로 추가)
+  <b>이 자리에서 결정해 주면 좋은 것 (1건):</b> 이 "조립형 납품 모델"(빼기·더하기 가능, 부품 자격 5조건을 R2 모듈 분리의 완료 기준으로)을 정식 판매 방식으로 채택할지 — 채택 시 기존 로드맵의 빌드 순서는 그대로, <b>"모듈 분리가 끝났다"의 기준만 5조건으로 명문화</b>됩니다. (기존 로드맵 표결 5건에 6번으로 추가)
 </div>
 
-<footer>v1 · 2026-07-13 · 사전 맥락 없이 읽는 논의용 초안 — 근거 문서: 제품 로드맵(2026-07-10)·설계 스펙(2026-07-07)·구현 상태는 리포지토리 테스트와 대응. 승인 시 스펙으로 확정 후 로드맵 md/html 정본에 반영.</footer>
+<footer>v2 · 2026-07-13 · 전면 재작성(수집 요구사항 10건 통합) — 결정·근거·기각 대안의 정본: <code>docs/superpowers/specs/2026-07-13-assembly-sales-model-design.md</code> · 관련 자료: 제품 로드맵(<code>2026-07-10-agentpay-roadmap.html</code>) · 라이브 데모 절차(<code>docs/guardrail-demo.md</code>) · 구현 상태는 리포지토리 테스트와 1:1 대응.</footer>
 
 </body>
 </html>
