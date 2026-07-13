@@ -19,3 +19,11 @@ management:
 agentpay:
   chain-id: 31337
   base-url: ${AGENTPAY_BASE_URL:http://localhost:8080}
+  guardrail:
+    allowed-tools: [web_search, send_notification]
+    blocked-tool-patterns: [shell]
+    allowed-domain-patterns: [example.com]
+    high-risk-actions: [wire_transfer]
+    approval-required-actions: [send_notification]
+    approval-gate-enabled: true
+    domain-check-enabled: false
