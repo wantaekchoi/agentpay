@@ -23,6 +23,8 @@ T1~T4(=G1 코어)만 R1 범위. 나머지 태스크는 로드맵 재편(§6)에 
 
 ## 중단 전 백로그 (변동 없음)
 - 읽기/멀티테넌트 authz(인증 모델 필요), PolicyEngine `amount > 0`(Phase 4에서), revoke 서명 nonce/expiry, EIP-712 `verifyingContract`.
+- **가드레일 관찰(shadow) 모드** — 차단 없이 기록만(도입 사다리 0단계, GuardrailConfig enforcement 플래그 1개). 진입장벽 대응 영업 무기 — 피치 §6 참조. (2026-07-13)
+- **원화 레일 1급 승격 검토** — PaymentRail 포트 뒤 기존 PG·계좌 어댑터. 크립토를 옵션 레일로 강등하면 VASP 장벽이 선택지로 바뀜 — 표결 자료에 명시할 것. (2026-07-13)
 
 ## 보류된 로드맵 (→ 2026-07-10 로드맵 문서로 재편됨)
 - 기존 Phase·G 번호와 신규 릴리즈 매핑: R1=G1 코어(T2~T4)+소급 배선+VC 스파이크 / R2-A=credential 코어(신설)+audit 선행분 / R2-B=Phase 3·4 / R3=남은 쪽+Phase 5+G2+G1 T5·T6 / R4=Phase 6·7+MCP+G1 T7·T8, 이후 G3~G5.
