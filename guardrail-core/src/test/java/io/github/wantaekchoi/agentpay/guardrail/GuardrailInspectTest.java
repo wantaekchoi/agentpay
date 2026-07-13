@@ -42,6 +42,17 @@ class GuardrailInspectTest {
                 domainCheckEnabled);
     }
 
+    private static GuardrailConfig configWithDomainPatterns(List<String> allowedDomainPatterns) {
+        return new GuardrailConfig(
+                ALLOWED_TOOLS,
+                BLOCKED_TOOL_PATTERNS,
+                allowedDomainPatterns,
+                HIGH_RISK_ACTIONS,
+                APPROVAL_REQUIRED_ACTIONS,
+                true,
+                true);
+    }
+
     private static GuardrailRequest request(
             String action, String message, List<ReferenceContext> referenceContexts,
             List<String> proposedTools, List<String> requestedDomains) {
@@ -128,6 +139,34 @@ class GuardrailInspectTest {
 
         GuardrailDecision decision = guardrail.inspect(request(
                 "chat", "please browse the web for me", List.of(), List.of(), List.of("evil.com")));
+
+        assertThat(decision.status()).isEqualTo(Status.DENIED);
+        assertThat(decision.reasons()).contains("unapproved_domain_requested");
+    }
+
+    @Test
+    void wildcardDomainPatternAllowsSubdomainAndApex() {
+        Guardrail guardrail = newGuardrail(
+                configWithDomainPatterns(List.of("*.example.com")), new RecordingAudit(), new RecordingAnalyzer());
+
+        GuardrailDecision subdomainDecision = guardrail.inspect(request(
+                "chat", "please browse the web for me", List.of(), List.of(), List.of("sub.example.com")));
+        GuardrailDecision apexDecision = guardrail.inspect(
+                request("chat", "please browse the web for me", List.of(), List.of(), List.of("example.com")));
+
+        assertThat(subdomainDecision.status()).isEqualTo(Status.ALLOWED);
+        assertThat(apexDecision.status()).isEqualTo(Status.ALLOWED);
+    }
+
+    @Test
+    void wildcardDomainPatternRejectsLookalikeDomainWithoutDotSeparator() {
+        Guardrail guardrail = newGuardrail(
+                configWithDomainPatterns(List.of("*.example.com")), new RecordingAudit(), new RecordingAnalyzer());
+
+        // "notexample.com"은 "example.com"을 부분 문자열로 포함하지만 "." 구분자가 없는 서로 다른
+        // 도메인이다 — endsWith(".example.com") 매칭이 순수 substring 매칭이 아님을 잠근다.
+        GuardrailDecision decision = guardrail.inspect(request(
+                "chat", "please browse the web for me", List.of(), List.of(), List.of("notexample.com")));
 
         assertThat(decision.status()).isEqualTo(Status.DENIED);
         assertThat(decision.reasons()).contains("unapproved_domain_requested");
