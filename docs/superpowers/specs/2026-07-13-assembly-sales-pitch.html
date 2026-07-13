@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentpay — 이런 걸 만들어서 이렇게 팔면 어때요? (v1 · 논의용)</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --ink: #1a1d23; --muted: #6b7280;
+    --line: #e2e5ea;
+    --core: #4f46e5; --core-bg: #eef0fe;
+    --adapter: #0e7490; --adapter-bg: #e6f5f8;
+    --server: #9333ea; --server-bg: #f5ecfe;
+    --guard: #be123c; --guard-bg: #fdecef;
+    --done: #16a34a; --wip: #d97706; --todo: #9ca3af;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b; --card: #1e2128; --ink: #e8eaee; --muted: #9aa1ad;
+      --line: #32363f;
+      --core: #8b85f7; --core-bg: #262a45;
+      --adapter: #4fc3d9; --adapter-bg: #1c3238;
+      --server: #c084fc; --server-bg: #33224a;
+      --guard: #fb7185; --guard-bg: #3d1f27;
+      --done: #4ade80; --wip: #fbbf24; --todo: #6b7280;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, "Pretendard", "Noto Sans KR", sans-serif; padding: 28px 24px 56px; line-height: 1.6; max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.35rem; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: .86rem; margin-bottom: 20px; }
+  h2 { font-size: 1.06rem; margin: 36px 0 12px; padding-top: 12px; border-top: 1.5px solid var(--line); }
+  h2 .who { font-size: .72rem; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; vertical-align: 2px; margin-left: 8px; }
+  p.note { font-size: .82rem; color: var(--muted); margin: 6px 0 10px; }
+  .st { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .st-done { background: var(--done); } .st-wip { background: var(--wip); } .st-todo { background: var(--todo); }
+
+  .tldr { background: var(--core-bg); border: 1.5px solid color-mix(in srgb, var(--core) 32%, transparent); border-radius: 14px; padding: 16px 18px; font-size: .92rem; }
+  .tldr b { color: var(--core); }
+  .tldr ol { margin: 8px 0 0 18px; font-size: .88rem; }
+  .tldr li { padding: 2px 0; }
+
+  .story { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: .87rem; margin: 12px 0; }
+  .story b { color: var(--adapter); }
+
+  .shelf { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin: 14px 0; }
+  .prod { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px 18px; font-size: .84rem; display: flex; flex-direction: column; gap: 9px; }
+  .prod.hero { border-color: color-mix(in srgb, var(--guard) 50%, transparent); box-shadow: 0 2px 10px color-mix(in srgb, var(--guard) 12%, transparent); }
+  .prod .tag { font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .prod.hero .tag { color: var(--guard); }
+  .prod h3 { font-size: 1rem; margin: 0; }
+  .prod .pain { background: var(--bg); border-left: 3px solid var(--guard); border-radius: 0 8px 8px 0; padding: 8px 11px; font-size: .8rem; }
+  .prod .pain b { color: var(--guard); }
+  .prod .give { font-size: .81rem; }
+  .prod .give li { margin-left: 16px; padding: 1px 0; }
+  .prod .stat { margin-top: auto; border-top: 1px dashed var(--line); padding-top: 8px; font-size: .76rem; color: var(--muted); }
+  .prod .stat b { color: var(--ink); }
+
+  .sell3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 12px 0; }
+  .sell3 .s { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; font-size: .82rem; }
+  .sell3 .s b { display: block; font-size: .9rem; margin-bottom: 4px; color: var(--core); }
+  .sell3 .s small { color: var(--muted); }
+
+  .tbl-wrap { overflow-x: auto; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: .8rem; }
+  th { text-align: left; padding: 9px 13px; border-bottom: 1.5px solid var(--line); font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  td { padding: 8px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.nm { font-weight: 700; white-space: nowrap; }
+  td.nm small { display: block; font-weight: 400; color: var(--muted); font-family: ui-monospace, monospace; font-size: .68rem; }
+
+  .gate { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; margin: 12px 0; counter-reset: gate; }
+  .gate .g { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 13px; font-size: .78rem; position: relative; }
+  .gate .g::before { counter-increment: gate; content: counter(gate); position: absolute; top: -10px; left: 12px; background: var(--core); color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .gate .g b { display: block; margin: 3px 0; font-size: .82rem; }
+  .gate .g small { color: var(--muted); display: block; }
+
+  .qa { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 16px; margin: 12px 0; font-size: .84rem; }
+  .qa .q { padding: 11px 0; border-bottom: 1px dashed var(--line); }
+  .qa .q:last-child { border-bottom: none; }
+  .qa .q b { display: block; color: var(--server); margin-bottom: 3px; }
+  .qa .q b::before { content: "Q. "; }
+  .qa .q span::before { content: "A. "; font-weight: 700; color: var(--muted); }
+
+  .honesty { background: var(--card); border: 1.5px dashed var(--line); border-radius: 12px; padding: 13px 16px; font-size: .81rem; color: var(--muted); margin: 14px 0; }
+  .honesty b { color: var(--ink); }
+  .ask { background: color-mix(in srgb, var(--done) 9%, var(--card)); border: 1.5px solid color-mix(in srgb, var(--done) 40%, transparent); border-radius: 12px; padding: 14px 16px; font-size: .86rem; margin: 14px 0; }
+  .ask b { color: var(--done); }
+  footer { margin-top: 32px; font-size: .73rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>"이런 걸 만들어서, 이렇게 팔면 어때요?"</h1>
+<div class="sub">agentpay 조립형 판매 제안 v1 · 2026-07-13 · <b>사전 지식 없이 읽는 문서입니다</b> — 영업·개발 관점의 질문에 먼저 답합니다</div>
+
+<div class="tldr">
+  <b>30초 요약.</b> AI 에이전트가 사람 대신 검색하고 주문하고 <b>결제까지 하는</b> 흐름이 오고 있습니다(구글·오픈AI·스트라이프가 각자 표준을 밀며 경쟁 중).
+  그러면 기업들에겐 세 가지가 필요해집니다:
+  <ol>
+    <li>이 에이전트가 <b>누구인지 확인</b>하고 (신원)</li>
+    <li>주인이 <b>어디까지 허락했는지 검증</b>하고 (위임)</li>
+    <li>사고 치기 전에 <b>막는</b> 것 (검문)</li>
+  </ol>
+  우리는 이걸 국제 표준 규격의 <b>부품</b>으로 만들어 두고, 고객 문제 단위의 <b>상품 3개</b>로 팝니다.
+  조립형이라 <b>"이미 있는 건 빼고, 없는 것만 사세요"</b>가 가능한 게 차별점입니다.
+</div>
+
+<h2>1. 어떤 상황에서 팔리는 물건인가 <span class="who">영업·개발 공통</span></h2>
+<div class="story">
+  실제 장면 하나: 고객이 자기 AI 비서에게 "이번 달 사무용품 30만원어치 주문해 줘"라고 시킵니다.
+  에이전트가 쇼핑몰에 접속해 주문을 넣는 순간, <b>쇼핑몰은</b> 이 손님이 진짜 위임받은 에이전트인지 어떻게 알까요?
+  <b>고객 회사는</b> 에이전트가 30만원 한도를 지켰는지, 이상한 사이트에 접속하진 않았는지 누가 보장하죠?
+  <b>금융사는</b> "누가 언제 뭘 허락했는지" 감사 기록을 어떻게 남기죠?
+  — 이 빈칸들이 우리가 파는 자리입니다. 각 빈칸에 국제 표준(DID·AP2·x402 등)이 이미 생기고 있고, 우리는 <b>표준 그대로</b> 구현합니다(자체 규격 고집 없음 → 고객이 종속을 겁내지 않아도 됨).
+</div>
+
+<h2>2. 진열대 — 파는 건 부품이 아니라 "문제 해결" 3개 <span class="who">영업용</span></h2>
+<p class="note">고객은 모듈을 사지 않습니다. 자기 문제가 사라지는 걸 삽니다. 전면 상품은 3개로 좁힙니다.</p>
+<div class="shelf">
+  <div class="prod hero">
+    <span class="tag">진입 상품 · 지금 데모 가능</span>
+    <h3>🛡 AI 검문소 (가드레일)</h3>
+    <div class="pain"><b>고객의 공포:</b> "AI 에이전트 도입하고 싶은데, 얘가 사고 치면 누가 책임져?"</div>
+    <ul class="give">
+      <li>실행 <b>전에</b> 검문: 해킹 문구(탈옥 시도) 차단, 개인정보 자동 가림</li>
+      <li>회사 규칙 심사: 허용 도구·사이트 목록, 고위험 행동은 승인 대기</li>
+      <li>전 건 기록: 감사 대비 검문 일지 자동 축적</li>
+      <li>속도 저하 없음: 판정은 즉시, AI 정밀분석은 뒤에서 비동기로</li>
+    </ul>
+    <div class="stat"><b>상태:</b> <span class="st st-done"></span>핵심 엔진+서버 완성(자동 시험 114건, 최종 리뷰 통과) — <b>오늘 라이브 데모 가능</b>(절차: docs/guardrail-demo.md). 유일하게 단품으로도 완결되는 상품이라 첫 거래(land)용</div>
+  </div>
+  <div class="prod">
+    <span class="tag">주력 세트 A</span>
+    <h3>🏦 핀테크 세트 — 위임·권한 증명</h3>
+    <div class="pain"><b>고객의 공포:</b> "에이전트발 거래가 들어오는데, 위임 근거를 감사에 어떻게 소명하지?"</div>
+    <ul class="give">
+      <li>전자 위임장: 주인이 서명한 한도·기간·가맹점 조건을 암호학적으로 검증</li>
+      <li>권한 증명서(VC): "이 에이전트는 여기까지" 발급·확인·회수</li>
+      <li>변조는 즉시 거부 — 위·변조 거부가 테스트로 잠겨 있음</li>
+    </ul>
+    <div class="stat"><b>상태:</b> <span class="st st-done"></span>위임장 엔진 완성 · <span class="st st-todo"></span>권한증(VC)은 사내 인프라 연계 확인 후 착수</div>
+  </div>
+  <div class="prod">
+    <span class="tag">주력 세트 B</span>
+    <h3>🛒 커머스 세트 — 에이전트 손님 받기</h3>
+    <div class="pain"><b>고객의 공포:</b> "AI가 쇼핑하는 시대라는데, 우리 몰은 에이전트 손님을 못 받는다."</div>
+    <ul class="give">
+      <li>에이전트가 읽는 카탈로그 규격(ACP)으로 상품 노출</li>
+      <li>에이전트 신원·위임 확인대 + 결제 요청(x402) 수신</li>
+      <li>기존 몰을 갈아엎지 않고 <b>옆에 붙이는 커넥터</b> 방식</li>
+    </ul>
+    <div class="stat"><b>상태:</b> <span class="st st-done"></span>신원·위임 확인 완성 · <span class="st st-todo"></span>카탈로그·결제 수신은 로드맵 후반(R3~R4)</div>
+  </div>
+</div>
+
+<h2>3. 파는 방식 — "조립형"의 진짜 의미 <span class="who">영업용</span></h2>
+<p class="note">잘게 팔겠다는 게 아닙니다. 나사·볼트를 사는 고객은 없습니다. 조립형은 아래 3가지를 가능하게 하는 <b>납품 방식</b>입니다.</p>
+<div class="sell3">
+  <div class="s"><b>① 빼기 — 견적 경쟁력</b>"자체 로그인·신원 시스템 있어요" → 그 부품 빼고 그만큼 견적에서 뺍니다. 붙박이 일체형 경쟁사는 이 말을 못 합니다.<br><small>경쟁 입찰에서 이기는 지점</small></div>
+  <div class="s"><b>② 더하기 — 확장 매출</b>올해 검문소 단품으로 들어가서, 내년에 위임 심사대를 꽂습니다. 부품 규격이 같아 재구축 없이 증설.<br><small>land → expand 경로가 제품에 내장</small></div>
+  <div class="s"><b>③ 꽂힌다 — 도입 장벽 하락</b>모든 부품이 고객 시스템에 심는 <b>라이브러리</b>로도, 따로 세우는 <b>서버</b>(HTTP 호출)로도 제공. Java든 아니든, 구축형이든 접속형이든.<br><small>"우리 환경엔 안 맞아요"가 안 나오게</small></div>
+</div>
+<p class="note">가구에 비유하면: 고객은 <b>책상</b>을 삽니다. 다리 4개를 낱개로 진열하진 않지만 — 상판이 이미 있으면 상판값은 안 받고, 다리가 부러지면 다리만 교체해 주는 가게. 그게 조립형입니다.</p>
+
+<h2>4. 부품표(BOM) — 견적·납품 때 꺼내는 뒷면 <span class="who">개발용</span></h2>
+<p class="note">위 상품들이 실제로는 아래 부품의 조합입니다. "기능 완성"과 "부품 자격"(단독 납품 가능)은 다르게 표기합니다 — 지금 붙박이인 것도 있어서요.</p>
+<div class="tbl-wrap"><table>
+  <tr><th>부품</th><th>혼자서 하는 일</th><th>들어가는 상품</th><th>오늘 상태 (정직 표기)</th></tr>
+  <tr><td class="nm">🛡 검문소<small>guardrail-core</small></td><td>아무 AI 시스템에나 붙는 실행 전 검문. 다른 부품 없이 동작하게 이미 설계됨</td><td>전 상품 기본 내장 + 단품</td><td><span class="st st-done"></span>코어+서버 완성(검문 API·감사 DB 포함), 남은 건 퀵스타트·설명서 — <b>부품 자격 1호 임박</b></td></tr>
+  <tr><td class="nm">🪪 명부<small>identity-core</small></td><td>에이전트 등록·"본인 맞나" 서명 확인</td><td>핀테크·커머스 세트</td><td><span class="st st-done"></span>기능 완성 — 단, 본체 붙박이(분리 작업은 R2)</td></tr>
+  <tr><td class="nm">📜 위임장<small>delegation-core</small></td><td>우리 명부 없이도 외부 위임장의 서명·조건(한도·기간·가맹점) 검증</td><td>핀테크 세트 중심</td><td><span class="st st-done"></span>기능 완성(위·변조 거부 잠김) — 붙박이(R2 분리)</td></tr>
+  <tr><td class="nm">🎫 권한증<small>credential-core</small></td><td>에이전트별 권한 증명서(VC) 발급·확인·회수</td><td>핀테크 세트</td><td><span class="st st-todo"></span>미착수 — 사내 DID/VC 인프라 호환 확인이 선행</td></tr>
+  <tr><td class="nm">🏦 금고·결제<small>payment-core</small></td><td>예치금 장부 + 결제 승인·차감(단일 트랜잭션), 송금은 창구 분리</td><td>커머스 세트·완제품</td><td><span class="st st-todo"></span>미착수 (로드맵 분기 표결에 따라 순서 결정)</td></tr>
+  <tr><td class="nm">🧾 감사일지<small>audit-core</small></td><td>지울 수 없는 기록(append-only) + 증빙 영수증 발급</td><td>전 상품 (검문 일지는 검문소가 선행 증명)</td><td><span class="st st-todo"></span>미착수</td></tr>
+  <tr><td class="nm">🔑 고객 키·서명기<small>agentpay-client</small></td><td>고객 손의 키 보관·위임장 서명. <b>월렛 질문의 답이 이 부품</b>(아래 Q&amp;A)</td><td>전 상품의 클라이언트 짝</td><td><span class="st st-todo"></span>미착수 — 데모용 CLI가 원형</td></tr>
+  <tr><td class="nm">🔩 공용 원자부품<small>agentpay-commons</small></td><td>전자서명·DID 인코딩. 단품 아님 — 모든 부품에 동봉되는 포함재</td><td>전 부품에 동봉</td><td><span class="st st-done"></span>완성</td></tr>
+</table></div>
+
+<h2>5. "부품 자격" 5조건 — 뒷면의 기술 보증서 <span class="who">개발용</span></h2>
+<p class="note">아무 모듈이나 부품이라 부르지 않습니다. 아래 5조건을 통과해야 BOM에 "단독 납품 가능"으로 오릅니다. (③이 3장의 "꽂힌다"를 기술적으로 보증)</p>
+<div class="gate">
+  <div class="g"><b>알맹이가 순수</b>스프링·DB·타 부품 없이 컴파일·동작. 공유는 원자부품만.<small>→ 어디든 들어감</small></div>
+  <div class="g"><b>연결은 콘센트 규격</b>외부 도구는 포트/어댑터로만 — 고객 인프라에 맞춰 플러그 교체.<small>→ 인프라 강요 없음</small></div>
+  <div class="g"><b>심어도·세워도</b>라이브러리 임베드 + 독립 서버(HTTP) 두 형태 모두 제공.<small>→ 언어·환경 불문</small></div>
+  <div class="g"><b>혼자서도 일한다</b>타 부품 없이 실사용 시나리오가 도는 걸 자동 시험으로 증명.<small>→ "쪼갠 의미"의 검증</small></div>
+  <div class="g"><b>설명서 동봉</b>독립 퀵스타트 + 5분 데모 — 받은 날 붙여본다.<small>→ 납품 완결</small></div>
+</div>
+
+<h2>6. 개발팀장이 바로 물어볼 것들 <span class="who">Q&amp;A</span></h2>
+<div class="qa">
+  <div class="q"><b>고객(사용자)이 월렛을 만들어야 하는 거 아닌가? 그거 진입장벽인데.</b>
+    <span>월렛 온보딩은 3단 폴백으로 풉니다. ⓐ 사내 DID 월렛·인증 앱에 서명 키를 얹기(사용자 기반 재활용 — 호환 검증이 로드맵 R1 스파이크) → ⓑ 안 되면 <b>SDK 임베디드 키</b>: 고객 앱 안에서 키 생성·디바이스 보안영역 보관, 사용자는 월렛 개념을 모른 채 가입만 → ⓒ 크립토 익숙한 고객만 외부 월렛(BYO). 어느 쪽이든 <b>서버는 서명 검증만 하므로 서버 설계는 불변</b> — 바뀌는 건 클라이언트 포장뿐.</span></div>
+  <div class="q"><b>서버가 고객 개인키를 들고 있는 건 아니지?</b>
+    <span>아닙니다. 개인키의 서버 저장·로그 기록 금지가 프로젝트 불변 제약이고, 자동 검사(아키텍처 테스트)로 강제합니다. 서버에는 공개키·주소·DID만.</span></div>
+  <div class="q"><b>표준이 아직 전쟁 중인데 (구글 AP2 vs 오픈AI ACP) 잘못 베팅하면?</b>
+    <span>그래서 코어는 표준을 모르고, 표준은 교체형 어댑터로만 둡니다. 진영이 바뀌면 어댑터만 갈아 끼움 — 양 진영 모두 수용이 기본 방침.</span></div>
+  <div class="q"><b>다 만들어진 거야? 뭘 믿고 팔지?</b>
+    <span>아래 정직성 박스 참조. 오늘 기준 라이브 시연 가능: 에이전트 등록·신원확인·위임장 발급/검증/회수 + 검문소 전체(검문 API·감사 기록·비동기 심층분석까지) — 자동 시험 114건 green, whole-branch 최종 리뷰 통과. 나머지는 로드맵 순서대로이며, 이 문서의 상태 표기는 코드·테스트와 1:1 대응.</span></div>
+  <div class="q"><b>이거 규제(가상자산사업자) 걸리는 거 아닌가?</b>
+    <span>열린 질문으로 선점해 뒀습니다 — 예치·송금 구간의 VASP 해당 여부와 원화 레일은 답을 지어내지 않고 검토 항목으로 관리 중. 검문소·위임·권한증 상품은 이 질문과 독립적으로 판매 가능.</span></div>
+</div>
+
+<div class="honesty">
+  <b>정직성 박스 — 오늘 팔 수 있는 것 vs 만드는 중인 것.</b><br>
+  ① 오늘 라이브 데모 가능: 에이전트 등록·신원확인·전자 위임장(발급→검증→변조 거부→회수) + <b>검문소 전체</b>(검문 API·감사 일지 DB·비동기 심층분석) — 실제 서명·실제 DB로 시연, 절차는 docs/guardrail-demo.md.
+  ② 설계만 있고 코드 없음: 권한증(VC)·금고/결제·감사일지·커머스 커넥터·고객 SDK.
+  ③ "부품 자격 5조건"을 오늘 전부 통과한 부품: <b>아직 0개</b> — 검문소는 5조건 중 설명서·퀵스타트만 남아 1호 임박, 명부·위임장은 기능 완성이지만 본체에서 분리 전.
+  이 문서의 어떤 표기도 이 사실보다 앞서 나가지 않습니다.
+</div>
+
+<div class="ask">
+  <b>이 자리에서 결정해 주면 좋은 것 (1건):</b> 이 "조립형 납품 모델"(빼기·더하기 가능, 부품 자격 5조건을 분리 작업의 완료 기준으로)을 정식 판매 방식으로 채택할지 — 채택 시 기존 로드맵의 빌드 순서는 그대로, <b>"모듈 분리가 끝났다"의 기준만 5조건으로 명문화</b>됩니다. (기존 로드맵 표결 5건에 6번으로 추가)
+</div>
+
+<footer>v1 · 2026-07-13 · 사전 맥락 없이 읽는 논의용 초안 — 근거 문서: 제품 로드맵(2026-07-10)·설계 스펙(2026-07-07)·구현 상태는 리포지토리 테스트와 대응. 승인 시 스펙으로 확정 후 로드맵 md/html 정본에 반영.</footer>
+
+</body>
+</html>
