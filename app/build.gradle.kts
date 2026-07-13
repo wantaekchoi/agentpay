@@ -11,6 +11,7 @@ java {
 }
 
 dependencies {
+    implementation(project(":guardrail-core"))
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -23,6 +24,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
+    testImplementation("org.awaitility:awaitility:4.2.2")
 }
 
 tasks.withType<Test> {

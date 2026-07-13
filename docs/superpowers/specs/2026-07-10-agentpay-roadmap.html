@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentpay 로드맵 — 관계자 논의자료 (2026-07-10)</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --ink: #1a1d23; --muted: #6b7280;
+    --line: #e2e5ea;
+    --core: #4f46e5; --core-bg: #eef0fe;
+    --adapter: #0e7490; --adapter-bg: #e6f5f8;
+    --server: #9333ea; --server-bg: #f5ecfe;
+    --sdk: #b45309; --sdk-bg: #fdf3e3;
+    --guard: #be123c; --guard-bg: #fdecef;
+    --done: #16a34a; --wip: #d97706; --todo: #9ca3af;
+    --rel: #4f46e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b; --card: #1e2128; --ink: #e8eaee; --muted: #9aa1ad;
+      --line: #32363f;
+      --core: #8b85f7; --core-bg: #262a45;
+      --adapter: #4fc3d9; --adapter-bg: #1c3238;
+      --server: #c084fc; --server-bg: #33224a;
+      --sdk: #e8a44b; --sdk-bg: #3a2d18;
+      --guard: #fb7185; --guard-bg: #3d1f27;
+      --done: #4ade80; --wip: #fbbf24; --todo: #6b7280;
+      --rel: #8b85f7;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, "Pretendard", "Noto Sans KR", sans-serif; padding: 28px 24px 56px; line-height: 1.55; max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: .88rem; margin-bottom: 18px; }
+  h2 { font-size: 1.08rem; margin: 34px 0 12px; padding-top: 10px; border-top: 1.5px solid var(--line); }
+  h3 { font-size: .95rem; margin: 18px 0 8px; }
+  p.note { font-size: .82rem; color: var(--muted); margin: 6px 0 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .8rem; color: var(--muted); margin: 8px 0 14px; }
+  .legend b { font-weight: 600; color: var(--ink); }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+  .st { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .st-done { background: var(--done); } .st-wip { background: var(--wip); } .st-todo { background: var(--todo); }
+
+  .principle { background: var(--core-bg); border: 1.5px solid color-mix(in srgb, var(--core) 30%, transparent); border-radius: 12px; padding: 14px 16px; font-size: .9rem; margin-bottom: 14px; }
+  .principle b { color: var(--core); }
+  .gloss { background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; }
+  .gloss h4 { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 8px; }
+  .gloss dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4px 22px; font-size: .8rem; }
+  .gloss dt { font-weight: 700; display: inline; }
+  .gloss dd { display: inline; color: var(--muted); margin: 0; }
+  .gloss .pair { padding: 2px 0; }
+  .honesty { background: var(--card); border: 1.5px dashed var(--line); border-radius: 12px; padding: 12px 16px; font-size: .8rem; color: var(--muted); margin: 12px 0; }
+  .honesty b { color: var(--ink); }
+
+  .tbl-wrap { overflow-x: auto; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); }
+  table { width: 100%; border-collapse: collapse; min-width: 660px; font-size: .8rem; }
+  th { text-align: left; padding: 10px 14px; border-bottom: 1.5px solid var(--line); font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.std { font-weight: 700; white-space: nowrap; }
+  td.std small { display: block; font-weight: 400; color: var(--muted); white-space: normal; max-width: 170px; }
+  td .cell-note { color: var(--muted); font-size: .73rem; display: block; }
+
+  .layer { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; background: var(--card); }
+  .layer-title { font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .layer-title .desc { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); font-size: .8rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border-radius: 8px; padding: 7px 11px; font-size: .82rem; font-weight: 500; border: 1px solid transparent; max-width: 330px; }
+  .chip small { display: block; font-weight: 400; font-size: .72rem; opacity: .82; }
+  .c-core   { background: var(--core-bg);    color: var(--core);    border-color: color-mix(in srgb, var(--core) 30%, transparent); }
+  .c-adapter{ background: var(--adapter-bg); color: var(--adapter); border-color: color-mix(in srgb, var(--adapter) 30%, transparent); }
+  .c-server { background: var(--server-bg);  color: var(--server);  border-color: color-mix(in srgb, var(--server) 30%, transparent); }
+  .c-sdk    { background: var(--sdk-bg);     color: var(--sdk);     border-color: color-mix(in srgb, var(--sdk) 30%, transparent); }
+  .c-guard  { background: var(--guard-bg);   color: var(--guard);   border-color: color-mix(in srgb, var(--guard) 35%, transparent); }
+  .t-core { color: var(--core); } .t-adapter { color: var(--adapter); } .t-server { color: var(--server); } .t-sdk { color: var(--sdk); } .t-guard { color: var(--guard); }
+  .xband { border: 1.5px solid color-mix(in srgb, var(--guard) 40%, transparent); background: var(--guard-bg); }
+
+  .lineup { border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); padding: 18px 20px; margin: 14px 0 22px; }
+  .lineup h3 { margin-top: 0; font-size: 1rem; }
+  .pitch { font-size: .86rem; background: var(--bg); border-left: 3px solid var(--core); padding: 10px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 14px; }
+  .zones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 4px; }
+  @media (max-width: 720px) { .zones { grid-template-columns: 1fr; } }
+  .zone { border: 1.5px dashed var(--line); border-radius: 10px; padding: 12px; }
+  .zone h4 { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 8px; }
+  .zone .chips { gap: 6px; }
+  .zone .chip { font-size: .76rem; padding: 5px 9px; }
+  .deploy-note { font-size: .76rem; color: var(--muted); border-top: 1px dashed var(--line); margin-top: 10px; padding-top: 8px; }
+  .deploy-note b { color: var(--ink); }
+
+  .uc { background: var(--bg); border-radius: 10px; padding: 12px 14px; margin: 12px 0; font-size: .84rem; }
+  .uc b.say { color: var(--core); }
+
+  .seq { position: relative; margin: 14px 0 6px; padding-top: 40px; overflow: hidden; }
+  .seq .life { position: absolute; top: 36px; bottom: 0; border-left: 1.5px dashed var(--line); }
+  .seq .seq-actor { position: absolute; top: 0; transform: translateX(-50%); background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; padding: 3px 9px; font-size: .72rem; font-weight: 700; white-space: nowrap; z-index: 2; }
+  .msg { position: relative; height: 40px; }
+  .msg .lbl { position: absolute; left: var(--l); width: var(--w); top: 2px; text-align: center; font-size: .7rem; line-height: 1.25; color: var(--ink); }
+  .msg .ln { position: absolute; left: var(--l); width: var(--w); top: 26px; border-top: 2px solid var(--c); }
+  .msg.r .ln::after { content: ""; position: absolute; right: -2px; top: -5px; border: 4px solid transparent; border-left: 7px solid var(--c); }
+  .msg.l .ln::after { content: ""; position: absolute; left: -2px; top: -5px; border: 4px solid transparent; border-right: 7px solid var(--c); }
+  .msg.m-done { --c: var(--done); } .msg.m-wip { --c: var(--wip); } .msg.m-todo { --c: var(--todo); } .msg.m-ext { --c: color-mix(in srgb, var(--muted) 55%, transparent); }
+  .msg .self { position: absolute; left: calc(var(--l) - var(--w) / 2); width: var(--w); top: 4px; background: var(--card); border: 1.5px solid var(--c); border-radius: 8px; font-size: .7rem; line-height: 1.25; text-align: center; padding: 4px 6px; }
+  .msg.tall { height: 52px; }
+  .seq-note { font-size: .74rem; color: var(--muted); margin-top: 4px; }
+
+  .rel { border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); padding: 16px 18px; margin: 12px 0; }
+  .rel h3 { margin-top: 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rel .rtag { background: var(--core-bg); color: var(--rel); font-size: .72rem; font-weight: 700; border-radius: 6px; padding: 2px 8px; }
+  .payoff { font-size: .84rem; background: color-mix(in srgb, var(--done) 10%, var(--card)); border-left: 3px solid var(--done); padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 8px 0 10px; }
+  .rel ul { list-style: none; padding: 0; font-size: .82rem; }
+  .rel li { padding: 3px 0; }
+  .rel li small { display: block; color: var(--muted); font-size: .73rem; padding-left: 24px; }
+  .size { font-size: .68rem; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+  .fork { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .fork { grid-template-columns: 1fr; } }
+  .fork .rel { margin: 0; }
+  .fork .rel.pick { border-color: color-mix(in srgb, var(--core) 45%, transparent); }
+  .fork-label { text-align: center; font-size: .78rem; color: var(--muted); margin: 10px 0 6px; }
+
+  .qa { border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); padding: 4px 16px; margin: 10px 0; }
+  .qa dl { font-size: .82rem; }
+  .qa dt { font-weight: 700; margin-top: 12px; }
+  .qa dd { margin: 3px 0 12px 0; color: var(--muted); }
+
+  ol.votes { font-size: .86rem; padding-left: 20px; }
+  ol.votes li { margin: 10px 0; }
+  ol.votes b { color: var(--core); }
+</style>
+</head>
+<body>
+
+<h1>agentpay — AI 에이전트 상거래 인프라 로드맵</h1>
+<div class="sub">관계자 논의자료 (2026-07-10) · 국제 표준의 요청측·서빙측을 모두 갖춘 하나의 코어에서, 부분집합을 골라 임베드 라이브러리 · 구축형 · 운영형 제품을 만드는 구도 · 시간축 없음(단계·순서만)</div>
+
+<div class="principle">
+  기능을 발명하지 않는다. <b>표준을 따른다.</b> 각 표준에는 <b>요청 측</b>(에이전트·클라이언트 — 사러 가는 쪽)과 <b>서빙 측</b>(수용 기업·서버 — 받아주는 쪽)이 있다 —
+  양측을 모두 구현하면 <b>한쪽만도 팔 수 있고, 양쪽 묶음도 팔 수 있다</b>. 매트릭스의 칸 하나가 판매 단위다.
+  그리고 <b style="color:var(--guard)">가드레일(보안 검문소)은 판매 이전에 우리 플랫폼 자신의 모든 요청 경로에 기본 내장</b>된다 — 고객이 사는 것은 우리 돈 흐름 앞에 두는 것과 동일한 코드다.
+</div>
+
+<div class="gloss">
+  <h4>용어 한 줄 — 이 자료에 반복해서 나오는 개념</h4>
+  <dl>
+    <div class="pair"><dt>DID</dt> <dd>— 에이전트·사용자의 <b>디지털 신분증</b>. 위조 불가능한 서명 키에서 만들어져, 서명만 보고 "진짜 그 에이전트인지" 확인할 수 있다.</dd></div>
+    <div class="pair"><dt>mandate (AP2)</dt> <dd>— 사용자가 에이전트에게 써 주는 <b>전자 위임장</b>. "이 에이전트가 내 돈을 어디서·얼마까지·언제까지 쓸 수 있다"를 전자서명으로 못박은 문서.</dd></div>
+    <div class="pair"><dt>VC</dt> <dd>— 위조 여부를 기계가 검증할 수 있는 <b>디지털 증명서</b> 국제 표준. 졸업증명서·자격증·영수증이 모두 이 형식으로 발급될 수 있다.</dd></div>
+    <div class="pair"><dt>가드레일 / admission</dt> <dd>— 요청이 실행되기 전 거치는 <b>보안 검문소</b> / 그 <b>통과 판정</b>. 이상한 요청(해킹 시도·정보 유출·규정 위반)을 거르고, 전 건을 기록한다.</dd></div>
+    <div class="pair"><dt>custody (커스터디)</dt> <dd>— 고객이 맡긴 돈(예치금)을 보관·기장하는 <b>금고와 장부</b>. 결제는 이 장부에서 차감된다.</dd></div>
+    <div class="pair"><dt>정산 / 온체인</dt> <dd>— 장부상 차감된 돈을 실제로 <b>블록체인에서 송금</b>하는 것. 블록체인 기록이라 지울 수 없는 <b>증적</b>이 남는다.</dd></div>
+  </dl>
+</div>
+
+<h2>① 표준 × 양측 매트릭스 — 판매 단위</h2>
+<p class="note">행 = 국제 표준, 열 = 그 표준의 두 쪽. <b>칸 하나하나가 따로 팔 수 있는 단위</b>다. 점 색 = 구현 상태.</p>
+
+<div class="legend">
+  <span><span class="st st-done"></span><b>done</b> 기능 동작·테스트 잠금</span>
+  <span><span class="st st-wip"></span><b>wip</b> 진행 중</span>
+  <span><span class="st st-todo"></span><b>todo</b> 예정</span>
+</div>
+
+<div class="tbl-wrap">
+<table>
+  <tr><th>표준 — 무엇을 하는 규칙인가</th><th>요청 측 — 에이전트·클라이언트에 판매</th><th>서빙 측 — 수용 기업·서버에 판매</th></tr>
+  <tr>
+    <td class="std">DID<small>디지털 신분증 표준 (did:key · did:web)</small></td>
+    <td><span class="st st-done"></span>신분증(키·DID) 만들기, 요청에 서명하기<span class="cell-note">코어 라이브러리 완료 · 고객 앱용 SDK 포장 예정</span></td>
+    <td><span class="st st-done"></span>들어온 요청이 진짜 그 에이전트인지 서명으로 확인</td>
+  </tr>
+  <tr>
+    <td class="std">A2A<small>에이전트끼리 서로를 찾고 소개하는 표준 — AgentCard는 에이전트의 "명함"</small></td>
+    <td><span class="st st-todo"></span>다른 에이전트의 명함을 조회·검증하고 일 시키기</td>
+    <td><span class="st st-done"></span>내 명함(능력·연락처·공개키) 게시 <sup>※1</sup><span class="cell-note">일감(태스크) 수신은 예정</span></td>
+  </tr>
+  <tr>
+    <td class="std">AP2<small>에이전트 결제 위임 표준 — mandate는 "전자 위임장"</small></td>
+    <td><span class="st st-wip"></span>위임장 작성·전자서명 (돈 주인이 하는 일) <sup>※1</sup><span class="cell-note">서명 엔진 완료 · 고객 앱용 SDK 패키징 미착수</span></td>
+    <td><span class="st st-done"></span>위임장 진위 확인·조건(한도·기간·가맹점) 심사·회수 처리 <sup>※1</sup><span class="cell-note">위임장 위조·변조 시 즉시 거부 — 테스트로 잠김</span></td>
+  </tr>
+  <tr>
+    <td class="std">W3C VC<small>디지털 증명서 표준 — 에이전트 권한증·영수증에 사용</small></td>
+    <td><span class="st st-todo"></span>증명서 지갑 — 권한증 보관·제시</td>
+    <td><span class="st st-todo"></span>발급기관·검증기관 — 에이전트별 권한증 발급·진위 확인·회수<span class="cell-note">credential 코어 (신설) · 회사의 기존 DID/VC 인프라와 연결</span></td>
+  </tr>
+  <tr>
+    <td class="std">x402<small>웹 결제 요청·지불 절차 표준 ("결제 필요" 응답에 서명 결제로 응답)</small></td>
+    <td><span class="st st-todo"></span>"결제 필요" 응답을 받아 서명하고 지불</td>
+    <td><span class="st st-todo"></span>결제 요구서 발행·지불 확인·송금 실행<span class="cell-note">송금 실행 주체는 agentpay — 몰은 입금 알림·연동 키트만 받는 게 기본, 구축형 선택 시 금고 운영 책임 이전 <sup>※2</sup></span></td>
+  </tr>
+  <tr>
+    <td class="std">ACP<small>AI 에이전트가 읽는 상품 카탈로그·주문 표준</small></td>
+    <td><span class="st st-todo"></span>카탈로그 읽기·조건 검색·주문 넣기</td>
+    <td><span class="st st-todo"></span>카탈로그 내놓기·주문 받기<span class="cell-note">기존 쇼핑몰에 붙이는 커넥터 형태 · ACP(OpenAI/Stripe 진영)와 AP2/x402(Google 진영)는 별도 생태계 — 둘 다 수용</span></td>
+  </tr>
+  <tr>
+    <td class="std">MCP<small>AI(Claude 등)에 외부 기능을 "도구"로 꽂는 연결 표준</small></td>
+    <td><span class="cell-note">요청측은 AI 호스트(Claude 등)가 이미 갖고 있음 — 우리가 만들 것 없음</span></td>
+    <td><span class="st st-todo"></span>agentpay 전 기능을 AI가 바로 쓰는 도구로 노출</td>
+  </tr>
+</table>
+</div>
+
+<div class="honesty">
+  <b>정직성 각주</b> — ※1 <b>done = 기능이 실제로 돌아가고 테스트로 잠겨 있다</b>는 뜻이며, 국제 표준 문서와의 세부 형식 대조는 별도 항목이다(차이가 나오면 어댑터 계층에서 흡수).
+  ※2 배포 형태: 현재 코드는 한 서버 안에 들어 있다 — <b>부품만 떼어 파는 임베드 라이브러리는 모듈 분리 작업(R2) 후</b> 가능. 오늘 가능한 것은 서버째 구축·라이브 시연이다.
+</div>
+
+<h2>② 컴포넌트 지도 — 4개 레이어 + 횡단 가드레일</h2>
+<p class="note">위에서 아래로: 부품(코어) → 표준별 맞춤 부품(어댑터) → 부품을 담아 돌리는 서버 → 고객 손에 들어가는 연동물. <b>가드레일은 레이어가 아니라 모든 경로에 가로로 걸리는 검문소</b>다.</p>
+
+<div class="legend">
+  <span><span class="dot" style="background:var(--core)"></span><b>공통 코어</b> 모든 제품의 공용 부품</span>
+  <span><span class="dot" style="background:var(--guard)"></span><b>가드레일</b> 검문소 — 기본 내장</span>
+  <span><span class="dot" style="background:var(--adapter)"></span><b>표준 어댑터</b> 표준별 교체 부품</span>
+  <span><span class="dot" style="background:var(--server)"></span><b>서버</b> 구축형·운영형</span>
+  <span><span class="dot" style="background:var(--sdk)"></span><b>통합 표면·SDK</b> 고객에 배포</span>
+</div>
+
+<div class="layer">
+  <div class="layer-title t-core">공통 코어 <span class="desc">모든 라인업이 공유하는 공용 부품 — 외부 인프라 없이도 도는 순수 Java</span></div>
+  <div class="chips">
+    <div class="chip c-core"><span class="st st-done"></span>agentpay-commons<small>서명·신분증의 원자 부품 — 전자서명 만들기/확인하기, 디지털 신분증(DID) 인코딩</small></div>
+    <div class="chip c-core"><span class="st st-done"></span>identity 코어<small>에이전트 명부 — 등록 받고, "본인 맞나" 서명 시험으로 확인</small></div>
+    <div class="chip c-core"><span class="st st-done"></span>delegation 코어<small>위임장 관리 — 위임장 진위 확인, 조건(한도·기간·가맹점) 심사 규칙</small></div>
+    <div class="chip c-core"><span class="st st-todo"></span>credential 코어<small>권한증 관리 — 에이전트별 권한 증명서(VC) 발급·확인·회수</small></div>
+    <div class="chip c-core"><span class="st st-todo"></span>custody · payment 코어<small>금고와 결제 심장 — 예치금 장부, 결제 승인·차감을 한 번에 처리</small></div>
+    <div class="chip c-core"><span class="st st-todo"></span>audit 코어<small>감사 일지 — 모든 일을 지울 수 없게 기록, 영수증 발급</small></div>
+  </div>
+</div>
+
+<div class="layer xband">
+  <div class="layer-title t-guard">가드레일 — 횡단, 전 경로 기본 내장 <span class="desc">모든 요청이 실행 전에 거치는 검문소: 보안 검사 → 돈 규칙 심사 → 실행 순서, 예외 없음 · 단독 판매는 파생</span></div>
+  <div class="chips">
+    <div class="chip c-guard"><span class="st st-wip"></span>guardrail-core<small>검문소 본체 — 위험 패턴(해킹 시도·정보 유출) 탐지 규칙 (뼈대 완료, 조립 진행 예정)</small></div>
+    <div class="chip c-guard"><span class="st st-todo"></span>즉시 판정 + AI 심층 분석<small>통과/차단은 그 자리에서, AI(sLLM) 정밀 분석은 뒤에서 몰래 — 그래서 속도 저하 없음</small></div>
+    <div class="chip c-guard"><span class="st st-todo"></span>inspection 원장<small>검문 기록부 — 전 건 기록, 감사 증적이자 탐지 규칙을 개선하는 데이터 자산</small></div>
+    <div class="chip c-guard"><span class="st st-todo"></span>OPA · Presidio · Ollama 어댑터<small>외부 전문 엔진 연결 — 정책 심사·개인정보 탐지·로컬 AI (없어도 기본 모드로 동작)</small></div>
+    <div class="chip c-guard"><span class="st st-todo"></span>단독판매 표면<small>같은 검문소를 고객 시스템에 심는 라이브러리 / 호출해 쓰는 서버 — 내장의 파생 상품</small></div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-title t-adapter">표준 어댑터 <span class="desc">표준별 맞춤 부품 — 새 표준 수용 = 이 부품만 교체, 코어는 그대로</span></div>
+  <div class="chips">
+    <div class="chip c-adapter"><span class="st st-done"></span>did:key / did:web<small>신분증 두 종 — 자체완결형 / 웹주소 연동형</small></div>
+    <div class="chip c-adapter"><span class="st st-done"></span>A2A AgentCard<small>에이전트 명함 게시</small></div>
+    <div class="chip c-adapter"><span class="st st-done"></span>AP2 Mandate<small>전자 위임장 형식·서명 방식</small></div>
+    <div class="chip c-adapter"><span class="st st-todo"></span>W3C VC<small>디지털 증명서 — 권한증·영수증</small></div>
+    <div class="chip c-adapter"><span class="st st-todo"></span>x402 / EIP-3009<small>웹 결제 절차 + 블록체인 송금 방식</small></div>
+    <div class="chip c-adapter"><span class="st st-todo"></span>ACP + schema.org<small>에이전트용 상품 카탈로그 형식</small></div>
+    <div class="chip c-adapter"><span class="st st-todo"></span>후보 stub<small>차세대 표준 대비석 — 자리만 미리 파 둔 교체 후보들</small></div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-title t-server">서버 <span class="desc">같은 부품을 담아 돌리는 본체 — 고객사에 구축해 주거나(구축형), 우리가 운영(운영형)</span></div>
+  <div class="chips">
+    <div class="chip c-server"><span class="st st-done"></span>core-service<small>플랫폼 본체 — 명부·위임장·(예정) 금고·결제·감사 일지를 담은 서버</small></div>
+    <div class="chip c-server"><span class="st st-todo"></span>evm-gateway<small>블록체인 창구 — 입금 감지, 송금 실행. 블록체인 기술을 이 서버에만 격리</small></div>
+    <div class="chip c-server"><span class="st st-todo"></span>guardrail-server<small>검문소의 서버 모드 — 비(非)Java 고객도 HTTP로 호출</small></div>
+    <div class="chip c-server"><span class="st st-todo"></span>commerce 커넥터<small>고객사 쇼핑몰과 우리 플랫폼을 잇는 다리</small></div>
+  </div>
+</div>
+
+<div class="layer">
+  <div class="layer-title t-sdk">통합 표면 · SDK <span class="desc">고객 손에 들어가는 것 — 어떤 AI 생태계든 접속하게 하는 얇은 포장</span></div>
+  <div class="chips">
+    <div class="chip c-sdk"><span class="st st-todo"></span>agentpay-client SDK<small>고객 앱용 연동 키트 — 키 보관, 위임장·결제 서명, API 호출을 대신 처리</small></div>
+    <div class="chip c-sdk"><span class="st st-todo"></span>MCP 서버 · 스킬·플러그인 팩<small>Claude·GPT 등 AI가 agentpay를 바로 쓰게 하는 생태계별 포장</small></div>
+    <div class="chip c-sdk"><span class="st st-todo"></span>agent-cli<small>시연·검증용 도구 — 데모에서 에이전트 역할</small></div>
+    <div class="chip c-sdk"><span class="st st-todo"></span>웹훅 계약<small>알림 전화 — "정산 끝났습니다"를 고객 시스템에 자동 통지하는 약속된 형식</small></div>
+  </div>
+</div>
+
+<p class="note">이전 초안의 라인업 "가드레일 단품"과 "Any-Agent 접속"은 각각 <b>내장 가드레일의 파생 상품</b>과 <b>통합 표면 레이어</b>로 흡수 — 아래 집중 라인업은 2개다.</p>
+
+<h2>③ 집중 라인업 Ⅰ — 금융기관·핀테크: 위임증명·권한 VC 패키지</h2>
+
+<div class="lineup">
+  <div class="pitch">이미 실물로 돌아가는 위임 코어(위임장 발급→진위 확인→회수, 위조 시 즉시 거부) 위에, 금융권이 이미 신뢰하는 디지털 증명서(VC) 표준으로 <b>에이전트별 권한증 발급·회수와 검증가능 영수증·감사 추적</b>을 얹는다 — "누가·어느 에이전트에·얼마까지·언제까지"를 나중에 부인할 수 없는 <b>서명 증거 체인</b>으로 만든다. 회사 DID/VC 본업과 같은 표준이라 기존 금융권 신뢰 채널의 연장선이다.</div>
+
+  <h3>구성도 — 구축형 중심 (기관 내부에 설치)</h3>
+  <div class="zones">
+    <div class="zone">
+      <h4>금융기관 인프라 (고객사 존)</h4>
+      <div class="chips">
+        <div class="chip c-server"><span class="st st-done"></span>core-service 구축형<small>플랫폼 본체를 기관 내부에 설치 — 에이전트 명부·위임장 관리 탑재</small></div>
+        <div class="chip c-core"><span class="st st-todo"></span>credential 코어<small>에이전트별 권한증(VC) 발급·확인·회수</small></div>
+        <div class="chip c-guard"><span class="st st-wip"></span>가드레일 내장<small>전 요청 검문 + 검문 기록부(내부통제 증적)</small></div>
+        <div class="chip c-core"><span class="st st-todo"></span>audit<small>감사 일지 — 전 거래 기록 · VC 영수증</small></div>
+        <div class="chip c-adapter"><span class="st st-todo"></span>기관 기존 DID/VC 인프라 연결<small>이미 쓰는 증명서 시스템을 부품 교체 방식으로 연결 (호환 확인 필요)</small></div>
+      </div>
+    </div>
+    <div class="zone">
+      <h4>agentpay (우리 존)</h4>
+      <div class="chips">
+        <div class="chip c-core"><span class="st st-done"></span>공통 코어·어댑터 공급<small>부품 업데이트 채널 — 가드레일 탐지 규칙 개선분 포함</small></div>
+        <div class="chip c-sdk"><span class="st st-wip"></span>agentpay-client SDK<small>기관 고객앱에 넣는 연동 키트 — 위임장 서명 (패키징 예정)</small></div>
+        <div class="chip c-server"><span class="st st-todo"></span>(선택) 운영형 호스팅<small>기관이 원하면 우리가 대신 운영</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="deploy-note">배포: <b>구축형 서버</b> 중심(요청측+서빙측 묶음). 부품만 떼어 주는 임베드는 모듈 분리(R2) 후. 요청측 SDK만 별도 판매도 가능.</div>
+
+  <h3>유스케이스 — "졸업 증명서 발급해줘"</h3>
+  <div class="uc">
+    고객이 자기 에이전트에게 <b class="say">"졸업 증명서 발급해줘"</b>라고 말하면 — 에이전트가 발급기관 카탈로그에서 증명서 발급 서비스(무형 상품)를 찾고,
+    사용자가 미리 서명해 둔 위임장 한도 안에서 수수료를 결제하고, 증명서가 위조 검증 가능한 VC로 발급되고, 예치금이 차감된 뒤 블록체인에서 실제 송금되어 <b>지울 수 없는 증적</b>이 남고,
+    전 과정이 VC 영수증·감사 일지로 나중에 검증 가능하다. 증명서 발급(오픈배지 = VC)은 설계에 이미 있는 상품 타입이다.
+  </div>
+
+  <div class="seq">
+    <div class="life" style="left:10%"></div><div class="life" style="left:30%"></div><div class="life" style="left:50%"></div><div class="life" style="left:70%"></div><div class="life" style="left:90%"></div>
+    <div class="seq-actor" style="left:10%">사용자</div>
+    <div class="seq-actor" style="left:30%">에이전트</div>
+    <div class="seq-actor" style="left:50%">agentpay 코어</div>
+    <div class="seq-actor" style="left:70%">발급기관</div>
+    <div class="seq-actor" style="left:90%">블록체인 창구</div>
+    <div class="msg r m-done" style="--l:10%;--w:40%"><span class="lbl">위임장 발급 — "이 에이전트, 얼마까지·언제까지·여기서만" 전자서명 ✅ 오늘 라이브</span><span class="ln"></span></div>
+    <div class="msg r m-ext" style="--l:10%;--w:20%"><span class="lbl">"졸업 증명서 발급해줘" (에이전트 앱 영역)</span><span class="ln"></span></div>
+    <div class="msg r m-todo" style="--l:30%;--w:40%"><span class="lbl">카탈로그 탐색 — 남은 위임 한도 안의 상품만 검색 (R4)</span><span class="ln"></span></div>
+    <div class="msg r m-todo" style="--l:30%;--w:20%"><span class="lbl">결제 요청 — 에이전트가 서명해 제출 (R2/R3)</span><span class="ln"></span></div>
+    <div class="msg tall m-wip" style="--l:50%;--w:34%"><span class="self">한 번에 승인 처리: 검문소 통과(R1) → 서명·위임장 심사 ✅ → 예치금 차감(R2/R3)</span></div>
+    <div class="msg r m-todo" style="--l:50%;--w:20%"><span class="lbl">승인 통지 → 증명서 VC 발급 (R4)</span><span class="ln"></span></div>
+    <div class="msg l m-todo" style="--l:30%;--w:40%"><span class="lbl">증명서 VC 전달 (R4)</span><span class="ln"></span></div>
+    <div class="msg r m-todo" style="--l:50%;--w:40%"><span class="lbl">뒤에서 실제 송금 → 블록체인 증적 · 위험 판정 시 송금 보류 (R3)</span><span class="ln"></span></div>
+    <div class="msg l m-todo" style="--l:10%;--w:40%"><span class="lbl">VC 영수증 · 감사 일지 조회 (R2A 일부 → R4 완성)</span><span class="ln"></span></div>
+  </div>
+  <div class="seq-note"><span class="st st-done"></span>오늘 라이브: 위임장 발급→진위 확인→<b>위조 위임장 즉시 거부</b>→소유자 서명 회수 (한도·가맹점·만료 심사는 테스트로 실증 — 라이브 결제는 결제 코어 구현 후) · <span class="st st-wip"></span>진행 중 · <span class="st st-todo"></span>예정(R# = 릴리즈)</div>
+
+  <h3>단계별 판매</h3>
+  <ul style="list-style:none;padding:0;font-size:.84rem">
+    <li><span class="st st-done"></span><b>지금</b> — 위임 증명 코어 라이브 데모 + 구축형 PoC 판매</li>
+    <li><span class="st st-wip"></span><b>R1~R2</b> — 검문 기록부 + 권한증 관리 → <b>"위임 + 권한증 + 정책 강제 + 감사 증적" 통합 데모, 본판매 개시</b></li>
+    <li><span class="st st-todo"></span><b>R3~R4</b> — 결제·송금·VC 영수증까지 증거 체인 완성, 요청측 SDK 포함 3배포 모델 전부</li>
+  </ul>
+</div>
+
+<h2>④ 집중 라인업 Ⅱ — 커머스 사업자: 에이전트 커머스 수용 패키지</h2>
+
+<div class="lineup">
+  <div class="pitch">AI 에이전트의 구매 트래픽을 차단할 봇이 아니라 <b>검증된 매출</b>로 — "누가, 어떤 권한으로" 사는지 디지털 신분증·전자 위임장으로 확인하고, 에이전트가 읽는 카탈로그 표준(ACP)으로 탐색·주문을 받고, <b>정산 결과는 알림(웹훅)·연동 키트로 수신</b>한다. 내장 검문소(가드레일)가 비정상 주문을 실행 전에 거른다. 위임·결제의 서명 체인은 <b>나중에 부인할 수 없는 증거</b>(내부 심사·감사·소명용 — 카드사 분쟁 절차에서의 효력은 검토 항목)다.</div>
+
+  <h3>구성도 — 운영형 기본 + 커넥터 (몰은 가볍게 연결만)</h3>
+  <div class="zones">
+    <div class="zone">
+      <h4>쇼핑몰 (고객사 존)</h4>
+      <div class="chips">
+        <div class="chip c-sdk"><span class="st st-todo"></span>웹훅 수신 + 연동 키트<small>기본 구매 단위 — "정산 완료" 알림 받고 주문 확정하는 연결부</small></div>
+        <div class="chip c-adapter"><span class="st st-todo"></span>ACP 카탈로그 커넥터<small>기존 상품 DB를 에이전트가 읽는 표준 카탈로그로 변환</small></div>
+        <div class="chip c-core"><span class="st st-done"></span>(선택) 검증 게이트<small>들어온 에이전트의 신분증·위임장 확인 — 코드 완료, 부품 분리는 R2</small></div>
+        <div class="chip c-guard"><span class="st st-wip"></span>(선택) 가드레일 임베드<small>주문 검문소 — 외부 인프라 없이 몰 서버 안에서 동작</small></div>
+      </div>
+    </div>
+    <div class="zone">
+      <h4>agentpay (우리 존 — 운영형)</h4>
+      <div class="chips">
+        <div class="chip c-server"><span class="st st-done"></span>core-service<small>위임장 관리 ✅ + 금고·결제 승인·감사 일지 (예정)</small></div>
+        <div class="chip c-server"><span class="st st-todo"></span>evm-gateway<small>블록체인 창구 — 입금 감지 · 실제 송금 실행</small></div>
+        <div class="chip c-guard"><span class="st st-wip"></span>가드레일 내장<small>전 경로 검문 + 위험 판정 시 송금 보류</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="deploy-note">배포: <b>운영형 기본</b> — 금고·송금은 agentpay가 운영하고 몰은 알림·연동 키트만 받는다. <b>구축형 선택 시 금고 운영 책임이 고객사로 이전</b>됨을 계약에 명시. <b>수요 전제(정직)</b>: 지금 판매는 에이전트 트래픽 대비 선행 구축(퍼스트무버) 제안 — 실트래픽은 쇼핑 에이전트 생태계 확산에 종속.</div>
+
+  <h3>유스케이스 — "15만원 이하로 무선 이어폰 사줘"</h3>
+  <div class="uc">
+    소비자가 에이전트에게 <b class="say">"15만원 이하로 무선 이어폰 사줘"</b>라고 말하면 — 에이전트가 몰의 카탈로그를 남은 위임 한도로 필터해 탐색하고,
+    몰은 들어온 요청의 신분증·위임장을 확인한 뒤 주문을 받는다. 결제는 위임장 한도 안에서만 승인·차감되고, 정산 완료가 알림으로 몰에 통지된다.
+    <b>탐색 자체가 위임된 예산에 묶인다</b>는 것이 킬러 데모다.
+  </div>
+
+  <div class="seq">
+    <div class="life" style="left:10%"></div><div class="life" style="left:30%"></div><div class="life" style="left:50%"></div><div class="life" style="left:70%"></div><div class="life" style="left:90%"></div>
+    <div class="seq-actor" style="left:10%">소비자</div>
+    <div class="seq-actor" style="left:30%">쇼핑 에이전트</div>
+    <div class="seq-actor" style="left:50%">쇼핑몰 (고객사)</div>
+    <div class="seq-actor" style="left:70%">agentpay</div>
+    <div class="seq-actor" style="left:90%">블록체인 창구</div>
+    <div class="msg r m-done" style="--l:10%;--w:60%"><span class="lbl">위임장 발급 — "이 몰에서 이만큼만" 전자서명 ✅ 오늘 라이브</span><span class="ln"></span></div>
+    <div class="msg r m-ext" style="--l:10%;--w:20%"><span class="lbl">"15만원 이하 무선 이어폰 사줘"</span><span class="ln"></span></div>
+    <div class="msg r m-todo" style="--l:30%;--w:20%"><span class="lbl">카탈로그 질의 — 예산 내 상품만 (R4)</span><span class="ln"></span></div>
+    <div class="msg r m-done" style="--l:50%;--w:20%"><span class="lbl">에이전트 신분증·위임장 확인 ✅</span><span class="ln"></span></div>
+    <div class="msg r m-todo" style="--l:30%;--w:40%"><span class="lbl">결제 개시 — 에이전트 서명 제출 (R2/R3)</span><span class="ln"></span></div>
+    <div class="msg tall m-wip" style="--l:70%;--w:30%"><span class="self">검문소 통과(R1) → 위임장 심사 ✅ → 예치금 차감(R2/R3)</span></div>
+    <div class="msg r m-todo" style="--l:70%;--w:20%"><span class="lbl">실제 송금 · 위험 시 보류 (R3)</span><span class="ln"></span></div>
+    <div class="msg l m-todo" style="--l:50%;--w:20%"><span class="lbl">"정산 완료" 알림 + VC 영수증 (R4)</span><span class="ln"></span></div>
+    <div class="msg l m-todo" style="--l:30%;--w:20%"><span class="lbl">주문 확정 (R4)</span><span class="ln"></span></div>
+  </div>
+  <div class="seq-note">몰이 사는 것 = 자기 존의 칸(카탈로그 커넥터·검증 게이트·알림 수신)뿐 — 금고·송금 레일은 운영형에서 agentpay 책임.</div>
+
+  <h3>단계별 판매</h3>
+  <ul style="list-style:none;padding:0;font-size:.84rem">
+    <li><span class="st st-done"></span><b>지금</b> — 신분증·위임장 검증 게이트 PoC (구축형/시연) + 가드레일 파생 단품 데모</li>
+    <li><span class="st st-todo"></span><b>R2B~R3</b> — "위임 예산 안에서만 승인·차감 + 비정상 주문 검문 차단" 라이브</li>
+    <li><span class="st st-todo"></span><b>R4</b> — 카탈로그 탐색·주문 + 알림·영수증 → <b>엔드투엔드 수용 패키지 본판매</b></li>
+  </ul>
+</div>
+
+<h2>⑤ 릴리즈 로드맵 — 공통 확정 구간 + 분기점 1개</h2>
+<p class="note">기한 없음 — 순서와 스코프만. 🆕 신규 개발 · 🔧 기존 수정·확장 · ♻️ 그대로 재사용 · [S/M/L] 상대 크기. <b>R1은 두 안 공통(기존 결정의 이행)</b>이고, 실제 표결 대상은 R2 분기 하나다.</p>
+
+<div class="rel">
+  <h3><span class="rtag">R1</span> 신뢰 코어 — 가드레일 내장 완성 <span style="font-size:.75rem;color:var(--muted)">(공통 확정 구간 · 진행 중이던 작업 재개)</span></h3>
+  <div class="payoff">끝나면: <b>모든 요청이 검문소를 지나고 전 건이 기록부에 남는 플랫폼</b> — 핀테크 PoC에 "내부통제 증적" 서사 추가, 가드레일 파생 상품 데모 가능, 검문 속도 실측치 확보.</div>
+  <ul>
+    <li>🆕 검문소 조립: 즉시 판정 엔진 + AI 심층 분석의 무지연 배선 + 본체 서버 통합 + 검문 기록부<span class="size">M</span><small>가드레일 부품(완료된 뼈대)을 실제 검문소로 조립해 플랫폼에 다는 일</small></li>
+    <li>🔧 기존 경로(에이전트 등록·위임장 발급)에 검문소 소급 설치 — 이후 새 경로는 처음부터 검문 내장<span class="size">S</span></li>
+    <li>🆕 사전 확인: 회사 기존 VC 인프라가 우리 서명 방식과 호환되는지 검증 → <b>표결 1의 입력</b><span class="size">S</span></li>
+    <li>♻️ 에이전트 명부 · 위임장 관리 · 심사 규칙 (완료분 그대로)</li>
+  </ul>
+</div>
+
+<div class="fork-label">▼ 분기점 — 표결 1: 검문소 완성 직후, 다음 한 칸을 무엇으로 채우나 ▼</div>
+<div class="fork">
+  <div class="rel pick">
+    <h3><span class="rtag">R2-A</span> 권한증(credential) 먼저 <span style="font-size:.75rem;color:var(--core)">(추천 · 호환 확인 결과 조건부)</span></h3>
+    <div class="payoff">끝나면: <b>핀테크 본판매 개시</b> — "기관이 에이전트에 권한증 발급 → 제시·확인 → 회수하면 즉시 거부" + 위임 전 구간 + 기록부 증적 라이브.</div>
+    <ul>
+      <li>🆕 credential 코어 — 에이전트별 권한증(VC) 발급·확인·회수<span class="size">M</span><small>회사의 기존 증명서 인프라를 부품 교체 방식으로 연결</small></li>
+      <li>🆕 위임·권한증 이벤트의 감사 기록 (감사 일지 선행분)<span class="size">S</span></li>
+      <li>🔧 고객 앱용 연동 키트 씨앗 — 위임장 서명 SDK<span class="size">S</span></li>
+      <li>🔧 부품 분리 — 검증 게이트를 떼어 파는 라이브러리로<span class="size">S~M</span><small>임베드 납품의 전제 조건</small></li>
+    </ul>
+  </div>
+  <div class="rel">
+    <h3><span class="rtag">R2-B</span> 금고·결제 먼저</h3>
+    <div class="payoff">끝나면: <b>돈이 실제로 도는 골격 관통</b> — "예치된 위임 예산 안에서만 승인·차감" 라이브, 커머스·핀테크 공통 골격.</div>
+    <ul>
+      <li>🆕 custody 코어 — 예치금 금고·장부 + 입금 감지<span class="size">M</span></li>
+      <li>🆕 결제 승인 — 검문→위임장 심사→차감을 한 번에 처리하는 심장<span class="size">M</span><small>처음부터 검문소가 배선된 상태로 만들어짐</small></li>
+    </ul>
+    <p class="note" style="margin:6px 0 0">커머스 파트너 레퍼런스 확보가 핀테크 첫 계약보다 급하다는 영업 신호가 있으면 이쪽.</p>
+  </div>
+</div>
+
+<div class="rel" style="margin-top:12px">
+  <h3><span class="rtag">R3</span> 남은 한쪽 + 송금 개통</h3>
+  <div class="payoff">끝나면: <b>예치→승인→블록체인 송금·증적 전 구간</b> — AI 심층 분석이 위험 거래의 송금을 보류시키는 안전장치까지, 핀테크 풀 컴플라이언스 데모.</div>
+  <ul>
+    <li>🆕 R2에서 안 한 쪽 (권한증 또는 금고·결제)<span class="size">M</span></li>
+    <li>🆕 x402 결제 절차 + 블록체인 창구(evm-gateway) — 실제 송금 실행<span class="size">M</span></li>
+    <li>🆕 송금 안전장치 — 송금 전 잠깐의 보류 시간을 두고, 그 사이 도착한 AI 위험 판정만 반영·미도착 시 진행+사후 표시<span class="size">S</span></li>
+    <li>🆕 외부 전문 엔진 연결 — 정책 심사(OPA)·개인정보 탐지(Presidio)<span class="size">M</span><small>기본 모드로도 돌므로 다른 작업과 병행</small></li>
+  </ul>
+</div>
+
+<div class="rel">
+  <h3><span class="rtag">R4</span> 커머스 접점 · 완제</h3>
+  <div class="payoff">끝나면: <b>커머스 엔드투엔드 본판매</b>(탐색→위임 한도→결제→알림·VC 영수증) + 3가지 배포 모델(임베드/구축형/운영형) 완성 — "졸업 증명서 발급" 유스케이스 풀 데모.</div>
+  <ul>
+    <li>🆕 에이전트용 카탈로그·주문 수용(ACP) + "예산 내 상품만 탐색" 킬러 데모 + 주문 검문<span class="size">M</span></li>
+    <li>🆕 VC 영수증 완성 + "정산 완료" 알림(웹훅) + 어느 몰이든 붙는 표준 연동 계약<span class="size">M</span></li>
+    <li>🆕 MCP 서버 · 스킬·플러그인 팩 — Claude·GPT가 agentpay를 도구로 직접 사용<span class="size">S</span></li>
+    <li>🔧 로컬 AI(Ollama) 연결 · 배포 구성 정리<span class="size">S</span></li>
+    <li>이후: 정책 관리 화면(G3) · 생태계 훅 어댑터(G4) · 차세대 표준 후보 확장(G5)</li>
+  </ul>
+</div>
+
+<h2>⑥ 전제와 열린 질문 — 답을 지어내지 않고 선점한다</h2>
+<div class="qa"><dl>
+  <dt>예치금 보관 규제 (VASP)</dt>
+  <dd>운영형 = 우리가 고객 돈(스테이블코인)을 보관 → 가상자산사업자 신고 대상 여부 검토가 <b>운영형 모델의 선행 조건</b>. 구축형·임베드는 운영 주체가 고객사라 부담이 이전됨 — 배포 모델 선택이 곧 규제 부담 배분.</dd>
+  <dt>원화 결제 레일</dt>
+  <dd>현재 설계는 스테이블코인 송금. 카드·계좌이체는 교체 부품 자리만 파 둔 상태 — 원화 요구 시 어댑터 추가로 흡수, 스테이블코인 규제 방향은 모니터링 항목.</dd>
+  <dt>회사 VC 인프라 호환 (R1 사전 확인)</dt>
+  <dd>기존 DID/VC 인프라가 우리 서명 방식(secp256k1/EIP-712)을 지원하는지 미확인. 불일치 시 대안: 자체 발급 + 회사 인프라는 검증 쪽만 재사용, 또는 이중 서명. <b>표결 1은 이 확인 결과 조건부.</b></dd>
+  <dt>표준 세부 형식 적합성</dt>
+  <dd>AP2·A2A "done"은 기능 동작 기준. 국제 표준 문서와의 세부 형식 대조는 미실시 — 차이는 어댑터 계층에서 흡수한다는 것이 이 아키텍처의 논거.</dd>
+  <dt>검문 기록부의 데이터 활용 적법성</dt>
+  <dd>기록부를 AI 학습 자산으로 쓰려면 개인정보 제거·동의 설계 검토 필요. 감사 증적 용도와 학습 용도를 분리 설계.</dd>
+  <dt>가드레일 오탐·미탐 책임</dt>
+  <dd>납품(고객 운영) vs 운영형(우리 운영)별 보안 책임 경계를 계약으로 정의 필요. "사람 승인 대기" 보류 건의 승인 주체·제한시간 포함.</dd>
+  <dt>검문 속도</dt>
+  <dd>"속도 저하 없음"은 AI 심층 분석(비동기)에 해당. 즉시 판정은 기본 모드 기준 저지연 — R1 완료 기준에 실측 포함, 수치는 측정으로 교체. 외부 엔진 연결 시 ms대.</dd>
+  <dt>커머스 콜드스타트 · 경쟁 구도</dt>
+  <dd>에이전트 구매 실트래픽은 쇼핑 에이전트 생태계(ChatGPT·Gemini) 확산에 종속 — 지금 판매는 퍼스트무버 선행 구축 제안. 카탈로그·결제 표준은 OpenAI/Stripe 진영(ACP)과 Google 진영(AP2/x402)이 경쟁 중 — <b>부품 교체 구조로 양 진영을 모두 수용하는 것</b>이 이 아키텍처의 실제 차별점.</dd>
+</dl></div>
+
+<h2>⑦ 결정 요청 — 이 자리에서 표결할 것</h2>
+<ol class="votes">
+  <li><b>[표결 1 — 유일한 로드맵 분기]</b> R1(검문소 내장) 직후의 한 칸: <b>권한증 관리 (R2-A, 추천 — VC 인프라 호환 확인 결과 조건부)</b> vs 금고·결제 (R2-B). 판단 기준: 핀테크 첫 계약 vs 커머스 파트너 레퍼런스 중 어느 쪽이 급한가.</li>
+  <li><b>[표결 2]</b> 가드레일 "본판매 가능" 인정 기준: 기본 모드(내장 규칙)만으로 인정 vs 외부 전문 엔진(OPA·Presidio) 연결까지 필수.</li>
+  <li><b>[표결 3]</b> 감사 기록의 분할 출시: 위임·권한증 증적만 조기 출시(R2-A 포함) vs 결제 실거래 생긴 뒤 일괄(R3~R4).</li>
+  <li><b>[표결 4]</b> 고객 앱용 연동 키트(SDK) 시점: R2에서 씨앗 vs R4에서 알림·표준 연동 계약과 묶음.</li>
+  <li><b>[표결 5]</b> 가드레일 단독판매 출시 시점: 내장 완성(R1) 즉시 파생 출시 vs 자사 결제 트래픽 실적(R2-B/R3 이후) 확보 후 "우리가 우리 돈 앞에 두고 쓴다" 근거와 함께 출시.</li>
+</ol>
+
+<p class="note" style="margin-top:26px">정본(마크다운): <code>docs/superpowers/specs/2026-07-10-agentpay-roadmap.md</code> — 이 HTML은 동일 내용의 논의용 렌더링 버전 · 근거: 설계 스펙 2026-07-07 · 가드레일 G1 스펙 2026-07-08 · CURRENT_STATE.md</p>
+
+</body>
+</html>
